@@ -1,0 +1,32 @@
+<form #clientForm="ngForm" novalidate dir="rtl">
+  <div class="modal-header">
+    <h4 class="modal-title">Edit client : {{client.client_id}}</h4>
+    <button type="button" class="close" aria-label="Close" (click)="activeModal.dismiss(null)">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body">
+    <div *ngIf="client">
+      <div class="form-group">
+        <div class="input-group mb-2">
+          <div class="input-group-prepend">
+            <div class="input-group-text">
+              Name
+            </div>
+          </div>
+          <input type="text" class="form-control" [(ngModel)]="client.name" #name="ngModel" id="name" name="name" required placeholder="Name"
+            aria-describedby="name-addon" appAutofocus>
+        </div>
+        <div *ngIf="name.invalid && (name.dirty || name.touched)" class="alert alert-danger">
+          <div *ngIf="name.errors.required">
+            Name is required.
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button type="submit" class="btn btn-outline-dark" [disabled]="clientForm.invalid" (click)="activeModal.close(client)">Save</button>
+  </div>
+</form>

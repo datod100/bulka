@@ -1,0 +1,4 @@
+{
+    "php.validate.executablePath": "g://xampp//php//php.exe",
+    "phpformatter.composer": true
+}

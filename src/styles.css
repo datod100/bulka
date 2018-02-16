@@ -1,0 +1,150 @@
+/* You can add global styles to this file, and also import other style files */
+
+.default-width{
+  max-width:950px;
+  width:100%;
+}
+
+.default-width-form{
+  max-width:500px;
+  width:100%;
+}
+
+.center{
+    text-align: center;
+  }
+
+.center-block, .center-cell, .center-cell span{
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.plus-button{
+  color: white;
+}
+
+.pointer_hand{
+  cursor: pointer;
+}
+
+.mobileshow {
+  display: inline-block;
+}
+.desktophide {
+  display: none;
+}
+
+@media screen and (max-width: 800px) {
+  .mobileshow {
+      display: none!important;
+  }
+  .desktophide{
+      display: inline-block!important;
+  }
+  .mobile2col {
+    width: 100%!important;
+    padding-right: 0!important;
+  }
+  .desktop-fixed-width{
+      width:110px;
+  }
+}
+
+.fixed-width{
+  width:110px;
+}
+
+.mobile2col{
+  width: 50%;
+  padding-right: .5rem;
+}
+
+
+.ag-cell {
+  display: flex;
+  align-items: center;
+}
+
+app-list-grid{
+  width: 100%;
+}
+
+.ag-body{
+  cursor: pointer;
+}
+
+.ag-row-hover{
+  background-color: #007bff12!important;
+}
+
+.order-items div>div{
+  display: inline-flex;
+}
+.order-items>div{
+  height: 21px;
+}
+
+.order-items .delimiter{
+  border-bottom: #d2cfcf 1px solid; 
+}
+
+.order-items .collection{
+  width:142px;
+  overflow: hidden;
+}
+
+.order-items .article{
+  font-weight: bold;
+  width:80px;
+  overflow: hidden;
+}
+.order-items .qty::before{
+  content: '\A0x';
+}
+
+.order-items .units::before, .order-items .article::before{
+  content: '\A0';
+}
+
+.ag-theme-fresh .ag-row{
+  border-bottom-width: 1px!important;
+}
+
+.ui-autocomplete .ui-autocomplete-input,.ui-autocomplete .ui-autocomplete-dropdown {
+  height:38px;
+  display:flex;
+  flex: 8 1 auto;
+  width: 1%;
+}
+.ui-autocomplete .ui-autocomplete-dropdown {
+  flex: 1 1 auto;
+}
+
+.ui-autocomplete input {
+  padding: .5rem!important;
+}
+
+p-autocomplete{
+  position: relative;
+    -ms-flex: 1 1 auto;
+    flex: 1 1 auto;
+    width: 1%;
+    margin-bottom: 0;
+}
+
+p-spinner>span{
+  width:100%;
+}
+
+p-spinner input{
+  width:100%;
+}
+
+.ui-autocomplete{
+  display:flex;
+}
+
+.ui-growl{
+  top:auto;
+  bottom: 20px;
+}

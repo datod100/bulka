@@ -1,0 +1,10 @@
+<h3>לקוחות</h3>
+<ag-grid-angular class="default-width ag-theme-fresh center-block" [rowData]="clients" [columnDefs]="columnDefs"
+[context]="context" (gridSizeChanged)="onGridSizeChanged($event)" 
+    [frameworkComponents]="frameworkComponents"
+    [enableRtl]="true"
+  [gridOptions]="gridOptions" (gridReady)="onGridReady($event)">
+</ag-grid-angular>
+
+<app-action-menu (click)="buttonClick()"></app-action-menu>
+<br><br><br><br><br><br>

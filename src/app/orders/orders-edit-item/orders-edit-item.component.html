@@ -1,0 +1,91 @@
+<div class="default-width-form center-block pt-3" *ngIf="item">
+  <h4>Item details:</h4>
+  <form #itemsEdit="ngForm">
+    <div class="form-group">
+      <div class="input-group mb-2">
+        <div class="input-group-prepend">
+          <div class="input-group-text fixed-width">
+            Collection
+          </div>
+        </div>
+        <p-autoComplete [(ngModel)]="selectedCollection" name="collection" [suggestions]="filteredCollections" (onSelect)="collectionSelected($event)"
+          (completeMethod)="searchCollection($event)" field="name" [dropdown]="true" #collection="ngModel"></p-autoComplete>
+      </div>
+
+      <div>
+        <div class="input-group mb-2 col pl-0 float-left mobile2col">
+          <div class="input-group-prepend">
+            <div class="input-group-text fixed-width">
+              Article #
+            </div>
+          </div>
+          <p-autoComplete [(ngModel)]="item.article" name="article" [suggestions]="filteredArticles"
+          (completeMethod)="searchArticle($event)" [dropdown]="true" #atricle="ngModel" required></p-autoComplete>
+        </div>
+
+        <div class="input-group mb-2 col p-0 float-left mobile2col">
+          <div class="input-group-prepend">
+            <div class="input-group-text fixed-width">
+              Product type
+            </div>
+          </div>
+          <div ngbDropdown class="col p-0">
+            <button class="btn w-100" id="product_type" name="product_type" ngbDropdownToggle>{{item.product_type|titlecase}}</button>
+            <div ngbDropdownMenu class="dropdown-menu" aria-labelledby="product_type">
+              <button class="dropdown-item" *ngFor="let product_type of product_types" (click)="item.product_type = product_type">{{product_type}}</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="input-group mb-2 col pl-0 float-left mobile2col">
+        <div class="input-group-prepend">
+          <div class="input-group-text fixed-width">
+            Quantity
+          </div>
+        </div>
+        <p-spinner size="30" class="form-control border-0 p-0" [(ngModel)]="item.quantity" name="quanity" required></p-spinner>
+      </div>
+
+      <div class="input-group mb-2 col p-0 float-left mobile2col">
+        <div class="input-group-prepend">
+          <div class="input-group-text fixed-width">
+            Price
+          </div>
+        </div>
+        <input type="text" class="form-control" [(ngModel)]="item.price" name="price">
+        <div class="input-group-append">
+            <span class="input-group-text">&#8362;</span>
+          </div>
+      </div>
+    </div>
+
+    <div class="d-flex w-100">
+      <button type="button" class="btn btn-primary col mr-2" (click)="save(collection.model)" [disabled]="itemsEdit.invalid">
+        <i class="fa fa-save"></i> Save</button>
+      <button type="button" class="btn btn-secondary col" (click)="close()">
+          <i class="fa fa-close"></i> Close</button>
+      <span class="col"></span>
+      <button type="button" class="btn btn-danger col" (click)="delete(content)" *ngIf="item.order_item_id">
+        <i class="fa fa-trash"></i> Delete</button>
+    </div>
+  </form>
+</div>
+
+<ng-template #content let-c="close" let-d="dismiss">
+  <div class="modal-header">
+    <h5 class="modal-title">Delete order item</h5>
+    <button type="button" class="close" aria-label="Close" (click)="d('Cross click')">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body">
+    <p>Are you sure?</p>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-danger" (click)="c('delete')"><i class="fa fa-trash"></i> Delete</button>
+    <button type="button" class="btn btn-secondary" (click)="c()"><i class="fa fa-times"></i> Cancel</button>
+  </div>
+</ng-template>

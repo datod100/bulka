@@ -1,0 +1,11 @@
+<h3>Orders</h3>
+<ag-grid-angular class="default-width ag-theme-fresh center-block" [columnDefs]="columnDefs"
+[context]="context" [enableColResize]="true"
+    [frameworkComponents]="frameworkComponents" [rowSelection]="rowSelection" [getRowHeight]="getRowHeight"
+  [gridOptions]="gridOptions" (gridReady)="onGridReady($event)" (gridSizeChanged)="onGridSizeChanged($event)" (selectionChanged)="onSelectionChanged($event)"
+  [animateRows]="true" [sortingOrder]="sortingOrder"
+  [enableSorting]="true"
+  >
+</ag-grid-angular>
+<app-action-menu (click)="this.router.navigate(['/orders/edit'])"></app-action-menu>
+<br><br><br><br><br><br>
