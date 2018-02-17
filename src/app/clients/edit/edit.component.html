@@ -1,32 +1,77 @@
-<form #clientForm="ngForm" novalidate dir="rtl">
-  <div class="modal-header">
-    <h4 class="modal-title">Edit client : {{client.client_id}}</h4>
-    <button type="button" class="close" aria-label="Close" (click)="activeModal.dismiss(null)">
-      <span aria-hidden="true">&times;</span>
-    </button>
-  </div>
-  <div class="modal-body">
-    <div *ngIf="client">
-      <div class="form-group">
-        <div class="input-group mb-2">
-          <div class="input-group-prepend">
-            <div class="input-group-text">
-              Name
-            </div>
-          </div>
-          <input type="text" class="form-control" [(ngModel)]="client.name" #name="ngModel" id="name" name="name" required placeholder="Name"
-            aria-describedby="name-addon" appAutofocus>
-        </div>
-        <div *ngIf="name.invalid && (name.dirty || name.touched)" class="alert alert-danger">
-          <div *ngIf="name.errors.required">
-            Name is required.
-          </div>
+<form #editClient="ngForm" class="default-width-form center-block">
+  <div class="form-group">
+    <h3 class="mb-3">{{title}} לקוח</h3>
+
+    <div class="input-group mb-2">
+      <div class="input-group-prepend">
+        <div class="input-group-text fixed-width">
+          שם הלקוח
         </div>
       </div>
-
+      <input type="text" class="form-control" [(ngModel)]="client.name" id="name" name="name" required>
     </div>
-  </div>
-  <div class="modal-footer">
-    <button type="submit" class="btn btn-outline-dark" [disabled]="clientForm.invalid" (click)="activeModal.close(client)">Save</button>
+
+    <div class="input-group mb-2">
+      <div class="input-group-prepend">
+        <div class="input-group-text fixed-width">
+          ח"פ/עוסק מורשה
+        </div>
+      </div>
+      <input type="text" class="form-control" [(ngModel)]="client.hetpei" id="hetpei" name="hetpei">
+    </div>
+
+    <div class="input-group mb-2">
+      <div class="input-group-prepend">
+        <div class="input-group-text fixed-width">
+          כתובת למשלוח
+        </div>
+      </div>
+      <input type="text" class="form-control" [(ngModel)]="client.address" id="address" name="address">
+    </div>
+
+    <div class="input-group mb-2">
+        <div class="input-group-prepend">
+          <div class="input-group-text fixed-width">
+            טלפון
+          </div>
+        </div>
+        <input type="text" class="form-control" [(ngModel)]="client.phone" id="phone" name="phone">
+      </div>
+
+    <div class="input-group mb-2">
+      <div class="input-group-prepend">
+        <div class="input-group-text fixed-width">
+          דוא"ל
+        </div>
+      </div>
+      <input type="text" class="form-control" [(ngModel)]="client.email" id="email" name="email">
+    </div>
+
+    <div class="input-group mb-2">
+        <div class="input-group-prepend">
+          <div class="input-group-text fixed-width">
+            איש קשר
+          </div>
+        </div>
+        <input type="text" class="form-control" [(ngModel)]="client.contact_person" id="contact_person" name="contact_person">
+      </div>
+  
+      <div class="input-group mb-2">
+          <div class="input-group-prepend">
+            <div class="input-group-text fixed-width">
+              משך נסיעה
+            </div>
+          </div>
+          <input type="text" class="form-control" [(ngModel)]="client.travel_duration" id="travel_duration" name="travel_duration">
+        </div>
+    
+    <div class="d-flex w-100 pb-3">
+      <button type="submit" class="btn btn-primary col mr-2" (click)="save(true)" [disabled]="editClient.invalid">
+        <i class="fa fa-save"></i> שמור
+      </button>
+      <span class="col-2"></span>
+      <button type="button" class="btn btn-secondary col" [routerLink]="['/clients']">
+        <i class="fa fa-close"></i> סגור</button>
+    </div>
   </div>
 </form>

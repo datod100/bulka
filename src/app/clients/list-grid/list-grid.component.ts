@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Client } from '../../_models/client';
 import {ICellRendererAngularComp} from "ag-grid-angular";
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-list-grid',
@@ -15,8 +16,8 @@ export class ListGridComponent implements ICellRendererAngularComp{
       this.params = params;
   }
 
-  open() {
-    this.params.context.componentParent.open(this.params.data);
+  edit() {
+    this.router.navigate(["/clients/edit", this.params.data.client_id]);
   }
 
   delete(){
@@ -26,5 +27,6 @@ export class ListGridComponent implements ICellRendererAngularComp{
   refresh(): boolean {
     return false;
   }
-  constructor() { }
+  constructor(
+    private router: Router) { }
 }

@@ -10,6 +10,7 @@ import { AuthGuard } from './_guards/index';
 import { HomeLayoutComponent } from './layouts/home-layout/home-layout.component';
 import { LoginLayoutComponent } from './layouts/login-layout/login-layout.component';
 import { OrdersEditComponent } from './orders/orders-edit/orders-edit.component';
+import { EditComponent } from './clients/edit/edit.component';
 
 const appRoutes: Routes = [
     { 
@@ -41,6 +42,27 @@ const appRoutes: Routes = [
             {
                 path : '',
                 component: ListComponent
+            }
+        ]
+    }
+    ,
+    { 
+        path: 'clients/edit/:id',
+        component: HomeLayoutComponent,
+        children: [
+            {
+                path : '',
+                component: EditComponent
+            }
+        ]
+    },
+    { 
+        path: 'clients/edit',
+        component: HomeLayoutComponent,
+        children: [
+            {
+                path : '',
+                component: EditComponent
             }
         ]
     },

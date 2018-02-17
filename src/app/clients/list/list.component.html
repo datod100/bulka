@@ -1,10 +1,12 @@
-<h3>לקוחות</h3>
-<ag-grid-angular class="default-width ag-theme-fresh center-block" [rowData]="clients" [columnDefs]="columnDefs"
+<div class="default-width center-block" style="max-width: 700px;">
+<h3 class="mb-3">לקוחות</h3>
+<ag-grid-angular class="ag-theme-fresh center-block" [rowData]="clients" [columnDefs]="columnDefs"
 [context]="context" (gridSizeChanged)="onGridSizeChanged($event)" 
     [frameworkComponents]="frameworkComponents"
     [enableRtl]="true"
   [gridOptions]="gridOptions" (gridReady)="onGridReady($event)">
 </ag-grid-angular>
 
-<app-action-menu (click)="buttonClick()"></app-action-menu>
+<app-action-menu [routerLink]="['/clients/edit']"></app-action-menu>
 <br><br><br><br><br><br>
+</div>
