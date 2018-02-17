@@ -1,6 +1,6 @@
 <?php
 //get all/one order
-$app->get('/statuses(/:id)', function ($id=null) use ($app) {
+$app->get('/products(/:id)', function ($id=null) use ($app) {
     //echoResponse(200, var_dump($id)); return;
     $response = array();
     $db = new DbHandler();
@@ -8,15 +8,16 @@ $app->get('/statuses(/:id)', function ($id=null) use ($app) {
         echoResponse(403, "Not authenticated");
         return;
     }
-    $q = "select * from statuses";
+    $q = "select * from products";
     if (isset($id)){
-        $q .= " WHERE status_id=".$id;
+        $q .= " WHERE product_id=".$id;
     }
-    $q .= " ORDER BY status_id";
+    $q .= " ORDER BY sort_order";
     $res = $db->getRecords($q);
 
     while ($row = $res->fetch_assoc()) {
-        $row['status_id'] = (int)$row['status_id'];
+        $row['product_id'] = (int)$row['product_id'];
+        $row['sort_order'] = (int)$row['sort_order'];
         $response[] = $row;
     }
     echoResponse(200, $response);

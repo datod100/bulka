@@ -5,3 +5,5 @@ export * from './client.service';
 export * from './orders.service';
 export * from './statuses.service';
 export * from './wfsite.service';
+export * from './groups.service';
+export * from './products.service';

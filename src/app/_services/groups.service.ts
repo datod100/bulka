@@ -1,0 +1,25 @@
+import { Injectable } from '@angular/core';
+import { environment } from '../../environments/environment';
+import { Group } from '../_models/index';
+import { Observable } from 'rxjs/Observable';
+
+
+@Injectable()
+export class GroupService {
+    private groups: Group[] = [];
+    private colors: string[] = ["#0074D9", "#7FDBFF", "#39CCCC", "#3D9970", "#2ECC40", "#01FF70", "#FFDC00"];
+
+    constructor() {
+        for (let i: number = 0; i < 8; i++) {
+            this.groups.push(new Group(i, "קבוצה " + i, this.colors[i]));
+        }
+    }
+    getAll() {
+        return Observable.of(this.groups);
+    }
+
+    getById(group_id: number) {
+        return this.groups.find(group => group.group_id == group_id);
+    }
+
+}
