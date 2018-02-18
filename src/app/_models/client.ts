@@ -1,4 +1,4 @@
-import { Time } from "@angular/common";
+import { Price } from ".";
 
 export class Client {
     client_id: number;
@@ -8,9 +8,10 @@ export class Client {
     email: string;
     phone: string;
     contact_person: string;
-    travel_duration: Time;
+    travel_duration: string;
     group_id: number;
-    default_time1: Time;
-    default_time2: Time;
-    default_time3: Time;
+    default_time1: string;
+    default_time2: string;
+    default_time3: string;
+    prices : Price[];
 }

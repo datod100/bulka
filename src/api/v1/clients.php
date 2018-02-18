@@ -24,6 +24,31 @@ $app->get('/clients(/:client_id)', function ($client_id=null) use ($app) {
     echoResponse(200, $response);
 });
 
+$app->get('/clients/prices/:client_id', function ($client_id=null) use ($app) {
+    $response = array();
+    $db = new DbHandler();
+    if (!isAuthenticated()){
+        echoResponse(403, "Not authenticated");
+        return;
+    }
+    $q = "select product_id, price from client_product_price WHERE client_id=?";
+    
+    $stmt = $db->conn->stmt_init();
+    $stmt->prepare($q);
+    $stmt->bind_param('d',$client_id);
+    $stmt->execute();
+
+    $result = $stmt->get_result();
+
+    while ($row = $result->fetch_assoc()) {
+        $row['product_id'] = (int)$row['product_id'];
+        $row['price'] = (float)$row['price'];
+        $response[] = $row;
+    }
+    //echoResponse(200, var_dump($response)); return;
+    echoResponse(200, $response);
+});
+
 //delete client
 $app->delete('/clients/:client_id', function ($client_id) {
     $response = array();
@@ -36,6 +61,46 @@ $app->delete('/clients/:client_id', function ($client_id) {
     $res = $db->execute($q);
     echoResponse(200, 'OK');
 });
+
+
+
+//save prices
+$app->put('/clients/prices/save/:client_id', function ($client_id) use ($app) {
+    $res = json_decode($app->request->getBody());
+    $response = array();
+    $db = new DbHandler();
+    if (!isAuthenticated()){
+        echoResponse(403, "Not authenticated");
+        return;
+    }
+
+    $stmt = $db->conn->stmt_init();
+    $stmt->prepare("delete from client_product_price where client_id=?");
+    $stmt->bind_param('d',$client_id);
+    $stmt->execute();
+
+
+    foreach ($res as &$row) {
+        if ($row->price>0){
+            $q = "INSERT INTO client_product_price SET
+                product_id=?,
+                client_id=?,
+                price=?";
+
+            $stmt = $db->conn->stmt_init();
+            $stmt->prepare($q);
+            $stmt->bind_param('ddd',
+                $row->product->product_id,
+                $client_id,
+                $row->price
+            );
+
+            $stmt->execute();
+        }
+    }
+    echoResponse(200, 'OK');
+});
+
 
 //update client
 $app->put('/clients', function () use ($app) {

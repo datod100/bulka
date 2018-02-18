@@ -38,6 +38,7 @@ import { NgbDateNativeAdapter, NgbDateCustomParserFormatter } from './_providers
 import { WfsiteService } from './_services/wfsite.service';
 import { OrdersEditItemComponent } from './orders/orders-edit-item/orders-edit-item.component';
 import { ScrollToModule } from 'ng2-scroll-to-el';
+import { OnlyNumber } from './_directives/only-number.directive';
 
 @NgModule({
     imports: [
@@ -71,7 +72,8 @@ import { ScrollToModule } from 'ng2-scroll-to-el';
         OrdersEditComponent,
         ListGridComponent,
         OrdersListGridComponent,
-        OrdersEditItemComponent
+        OrdersEditItemComponent,
+        OnlyNumber
     ],
     providers: [
         AuthGuard,

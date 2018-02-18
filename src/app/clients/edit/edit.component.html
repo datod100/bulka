@@ -6,19 +6,22 @@
         <div class="input-group mb-2">
           <div class="input-group-prepend">
             <div class="input-group-text fixed-width">
-              שם הלקוח
+              שם הלקוח <span style="color:red">*</span>
             </div>
           </div>
-          <input type="text" class="form-control" [(ngModel)]="client.name" id="name" name="name" required>
+          <input type="text" class="form-control" [(ngModel)]="client.name" id="name" name="name" required
+          [ngClass]="{'border border-danger': editClient.controls.name?.invalid}" maxlength="100"
+          >
         </div>
 
         <div class="input-group mb-2">
           <div class="input-group-prepend">
             <div class="input-group-text fixed-width">
-              ח"פ/עוסק מורשה
+              ח"פ/עוסק מורשה <span style="color:red">*</span>
             </div>
           </div>
-          <input type="text" class="form-control" [(ngModel)]="client.hetpei" id="hetpei" name="hetpei">
+          <input type="text" class="form-control" [(ngModel)]="client.hetpei" id="hetpei" name="hetpei" OnlyNumber="true" minlength="6" maxlength="10" required
+          [ngClass]="{'border border-danger': editClient.controls.hetpei?.invalid}">
         </div>
 
         <div class="input-group mb-2">
@@ -36,7 +39,8 @@
               טלפון
             </div>
           </div>
-          <input type="text" class="form-control" [(ngModel)]="client.phone" id="phone" name="phone">
+          <input type="text" class="form-control" [(ngModel)]="client.phone" id="phone" name="phone" pattern="^0\d([\d]{0,1})([-]{0,1})\d{7}$"
+          [ngClass]="{'border border-danger': editClient.controls.phone?.invalid}">
         </div>
 
         <div class="input-group mb-2">
@@ -45,7 +49,9 @@
               דוא"ל
             </div>
           </div>
-          <input type="text" class="form-control" [(ngModel)]="client.email" id="email" name="email">
+          <input type="text" class="form-control" [(ngModel)]="client.email" id="email" name="email"
+          [ngClass]="{'border border-danger': editClient.controls.email?.invalid && (editClient.controls.email?.dirty || editClient.controls.email?.touched)}"
+          pattern="[a-z]+[a-z0-9._]+@[a-z]+\.[a-z.]{2,5}">
         </div>
 
         <div class="input-group mb-2">
@@ -108,21 +114,24 @@
           <ngb-timepicker [(ngModel)]="default_time3" id="default_time3" name="default_time3" dir="ltr"></ngb-timepicker>
         </div>
       </div>
-      <div class="col-4 border-left">
+      <div class="col-5 border-left">
         <h5 class="mb-3">מחירים</h5>
 
-        <div class="input-group mb-2" *ngFor="let price of prices">
+        <div class="input-group mb-2" *ngFor="let price of client.prices">
             <div class="input-group-prepend">
               <div class="input-group-text fixed-width">
               {{price.product.name}}
               </div>
             </div>
-            <input type="text" class="form-control" [(ngModel)]="price.price" id="name" name="name">
+            <input type="text" class="form-control" [(ngModel)]="price.price" id="price{{price.product.product_id}}" name="price{{price.product.product_id}}">
+            <div class="input-group-append">
+              <span class="input-group-text">₪</span>
+            </div>
           </div>
       </div>
     </div>
     <div class="d-flex w-100 pt-3">
-      <button type="submit" class="btn btn-primary  mr-2" (click)="save(true)" [disabled]="editClient.invalid">
+      <button type="submit" class="btn btn-primary  mr-2" (click)="save()" [disabled]="editClient.invalid">
         <i class="fa fa-save"></i> שמור
       </button>
       <button type="button" class="btn btn-secondary " [routerLink]="['/clients']">
