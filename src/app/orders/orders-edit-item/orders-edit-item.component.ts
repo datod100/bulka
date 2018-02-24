@@ -52,22 +52,10 @@ export class OrdersEditItemComponent implements OnInit {
 
   refreshData() {
     Observable.forkJoin(
-      this.wfsiteService.getCollections(),
-      this.utilsService.getCollectionsHistory()
+      this.wfsiteService.getCollections()
     ).subscribe(
       data => {
         this.collections = data[0].concat(data[1]);
-        this.collections.sort((a: any, b: any) => {
-          var nameA = a.name.toUpperCase();
-          var nameB = b.name.toUpperCase();
-          if (nameA < nameB) {
-            return -1;
-          } else if (nameA > nameB) {
-            return 1;
-          } else {
-            return 0;
-          }
-        });
       },
       err => console.error(err),
       () => { }

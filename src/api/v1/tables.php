@@ -23,7 +23,7 @@ $app->get('/products(/:id)', function ($id=null) use ($app) {
     echoResponse(200, $response);
 });
 
-$app->get('/collection_history', function () use ($app) {
+$app->get('/cycles', function () use ($app) {
     //echoResponse(200, var_dump($id)); return;
     $response = array();
     $db = new DbHandler();
@@ -31,11 +31,11 @@ $app->get('/collection_history', function () use ($app) {
         echoResponse(403, "Not authenticated");
         return;
     }
-    $q = "SELECT DISTINCT `collection` name, -1 id FROM `order_items_history` ORDER by `collection`";
+    $q = "SELECT * from cycles ORDER BY sort_order";
     $res = $db->getRecords($q);
 
     while ($row = $res->fetch_assoc()) {        
-        $row['id'] = (int)$row['id'];
+        $row['cycle_id'] = (int)$row['cycle_id'];
         $response[] = $row;
     }
     echoResponse(200, $response);

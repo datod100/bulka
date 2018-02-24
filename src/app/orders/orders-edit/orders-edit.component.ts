@@ -1,11 +1,12 @@
 import { Component, OnInit, OnDestroy, NgModule } from '@angular/core';
 import { Order, Client, Status, OrderItem } from '../../_models/index';
-import { StatusesService, ClientService, OrdersService, AlertService } from '../../_services/index';
+import { StatusesService, ClientService, OrdersService, AlertService, ProductService } from '../../_services/index';
 import { ActivatedRoute, Router } from '@angular/router';
 import { error } from 'selenium-webdriver';
 import { Observable } from 'rxjs/Observable';
 import { NgbModal, ModalDismissReasons } from '@ng-bootstrap/ng-bootstrap';
-import { ScrollToService } from 'ng2-scroll-to-el';
+import { GridApi } from 'ag-grid/dist/lib/gridApi';
+import { GridOptions } from "ag-grid/main";
 
 @Component({
   selector: 'app-orders-edit',
@@ -14,9 +15,21 @@ import { ScrollToService } from 'ng2-scroll-to-el';
 })
 
 export class OrdersEditComponent implements OnInit, OnDestroy {
+
+  gridOptions: GridOptions;
+  columnDefs: any[]
+  private context;
+  private frameworkComponents;
+  private gridApi: GridApi;
+
+  headerData = [];
+  products = [];
+  cycles = [];
+  headerTableStyle;
+  defaultColDef;
+
   title;
   order: Order;
-  statuses: Status[] = [];
   public clients: Client[] = [];
   public filteredClients: Client[] = [];
   public collections = [];
@@ -32,25 +45,158 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
     private router: Router,
     private modalService: NgbModal,
     private ordersService: OrdersService,
+    private productService: ProductService,
     private alertService: AlertService,
-    private scrollService: ScrollToService,
     private clientService: ClientService) {
+
+
+    this.gridOptions = <GridOptions>{};
+    this.gridOptions.domLayout = 'autoHeight'
+
+    this.context = { componentParent: this };
+    this.frameworkComponents = {
+    };
+
+    this.columnDefs = [
+      {
+        headerName: "סיבוב", field: "cycle", width: 120, cellClass: "header-bold", editable: false,
+        colSpan: function (params) {
+          if (params.data.colSpan) {
+            return params.data.colSpan;
+          } else {
+            return 1;
+          }
+        },
+        cellStyle: function (params) {
+          if (params.data.cellStyle) {
+            return params.data.cellStyle;
+          } else {
+            return null;
+          }
+        }
+      },
+      {
+        headerName: "מוכן בשעה", field: "ready_time", width: 85, cellClass: "header-bold", editable: false,
+        cellRenderer: function (params) {
+          if (params.value) {
+            let time = params.value;
+            return time.slice(0, -3);
+          }
+        }
+      }
+    ];
 
     this.order = new Order();
     this.order.client = new Client();
     this.order.status = new Status();
     this.order.status_id = 2;
     var dt = new Date();
-    dt.setUTCFullYear(dt.getFullYear(), dt.getMonth()+1, dt.getDate());
-    
-    this.order.confirmation_date = dt;
-    this.order.supply_date=null;
-    this.selectedCollection.name = "Ami";
+    dt.setUTCFullYear(dt.getFullYear(), dt.getMonth() + 1, dt.getDate());
 
+    this.order.confirmation_date = dt;
+    this.order.supply_date = null;
+    this.selectedCollection.name = "Ami";
   }
 
   search(event) {
     this.filteredClients = this.clients.filter(v => v.name.toLowerCase().indexOf(event.query.toLowerCase()) > -1);
+  }
+
+
+  private buildHeaderTable() {
+    for (let i = 0; i < this.cycles.length; i++) {
+      this.headerData.push({ cycle: this.cycles[i].name, ready_time: this.cycles[i].cycle_time, cellStyleRow: { backgroundColor: '#ffc1074a' } });
+    }
+    this.headerData.push({ cycle: "סיכום הזמנות", colSpan: 2, disableEdit:true, cellStyle: { left: 'auto' }, cellStyleRow: { backgroundColor: '#ccccccbd' } });
+    this.headerData.push({ cycle: "נשלח", colSpan: 2,disableEdit:true, cellStyle: { left: 'auto' }, cellStyleRow: { backgroundColor: '#ccccccbd' } });
+    this.headerData.push({ cycle: "יתרת סחורה במאפייה", colSpan: 2,disableEdit:true, cellStyle: { left: 'auto' }, cellStyleRow: { backgroundColor: '#ccccccbd' } });
+
+    for (let k = 0; k < this.products.length; k++) {
+      let colWidth = this.products[k].name.length * 9;
+
+      for (let i = 0; i < this.cycles.length; i++) {
+        this.headerData[i]["product"+this.products[k].product_id]='';
+      }
+
+      this.columnDefs.push({
+        headerName: this.products[k].name,
+        field: "product"+this.products[k].product_id,
+        editable: function(params){
+          if (params.data.disableEdit) return false
+          return true;
+        },
+        width: (colWidth < 70) ? 70 : colWidth, cellStyle: function (params) {
+          if (params.data.cellStyleRow) {
+            return params.data.cellStyleRow;
+          } else {
+            return null;
+          }
+        }
+      });
+    }
+    this.gridApi.setColumnDefs(this.columnDefs);
+    this.calcGridWidth();
+    this.gridApi.setRowData(this.headerData);
+    
+  }
+
+
+  onGridReady(params) {
+    this.gridApi = params.api;
+
+    Observable.forkJoin(
+      this.clientService.getAll(),
+      this.statusesService.getCycles(),
+      this.productService.getAll()
+    ).subscribe(
+      data => {
+        this.clients = data[0];
+        this.cycles = data[1];
+        this.products = data[2];
+
+        this.buildHeaderTable();
+
+      },
+      err => console.error(err),
+      () => {
+        if (this.order_id) {
+          this.title = "Edit";
+
+          Observable.forkJoin(
+            this.ordersService.getById(this.order_id),
+            this.ordersService.getItemsById(this.order_id)
+          ).subscribe(
+            data => {
+              this.order = data[0][0];
+              this.order.items = data[1];
+              this.order.client = this.clients.find(item => item.client_id === this.order.client_id);
+              if (this.order.confirmation_date) this.order.confirmation_date = new Date(this.order.confirmation_date);
+              if (this.order.supply_date) this.order.supply_date = new Date(this.order.supply_date);
+            },
+            err => console.error(err)
+          );
+
+        } else {
+          this.title = "Create";
+        }
+
+      }
+    );
+
+    //params.api.sizeColumnsToFit();
+    //this.gridApi.resetRowHeights();
+  }
+
+  private calcGridWidth() {
+    let newWidth = 0;
+    let screenWidth = window.outerWidth;
+    for (let i = 0; i < this.columnDefs.length; i++) {
+      newWidth += this.columnDefs[i].width;
+    }
+    newWidth += 2;
+
+    this.headerTableStyle = { width: ((newWidth > screenWidth) ? screenWidth : newWidth) + 'px' };
+    this.gridApi.doLayout();
   }
 
   ngOnInit() {
@@ -58,63 +204,12 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
       this.order_id = +params['id'];
       var action = params['action'];
 
-      Observable.forkJoin(
-        this.clientService.getAll(),
-        this.statusesService.getAll()
-      ).subscribe(
-        data => {
-          this.clients = data[0];
-          this.statuses = data[1];
-        },
-        err => console.error(err),
-        () => {
-          if (this.order_id) {
-            this.title = "Edit";
 
-            Observable.forkJoin(
-              this.ordersService.getById(this.order_id),
-              this.ordersService.getItemsById(this.order_id)
-            ).subscribe(
-              data => {
-                this.order = data[0][0];
-                this.order.items = data[1];
-                this.order.client = this.clients.find(item => item.client_id === this.order.client_id);
-                this.order.status = this.statuses.find(item => item.status_id === this.order.status_id);
-                if (this.order.confirmation_date) this.order.confirmation_date = new Date(this.order.confirmation_date);
-                if (this.order.supply_date) this.order.supply_date = new Date(this.order.supply_date);
-
-                if (action=="AddItem"){
-                  this.addItem();
-                }
-              },
-              err => console.error(err)
-              );
-
-          } else {
-            this.title = "Create";
-            this.order.status = this.statuses.find(item => item.status_id === this.order.status_id);
-          }
-
-        }
-        );
     });
-  }
-
-  selectItem(item: OrderItem) {
-    if (item) {
-      this.selectedItem = JSON.parse(JSON.stringify(item));
-      this.scrollService.scrollTo("#itemForm",700);
-      return this.selectedItem;
-    }
   }
 
   ngOnDestroy() {
     this.sub.unsubscribe();
-  }
-
-  changeStatus(status_id) {
-    this.order.status_id = status_id;
-    this.order.status = this.statuses.find(item => item.status_id === status_id);
   }
 
   save(navigateOff) {
@@ -131,60 +226,20 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
       );
     } else {
       this.ordersService.create(this.order).subscribe(
-        data => { 
-          if (navigateOff){
+        data => {
+          if (navigateOff) {
             this.router.navigate(["/orders"]);
-          }else{
-            this.router.navigate(["/orders/edit/"+data+"/AddItem"]);
-          }          
+          } else {
+            this.router.navigate(["/orders/edit/" + data + "/AddItem"]);
+          }
         },
         err => {
           this.alertService.error(err.message);
         },
-        () => {          
+        () => {
         }
       );
     }
 
-  }
-
-  addItem() {
-    if (!this.order.order_id) {
-      this.save(false);
-    }
-
-    this.selectedItem = new OrderItem();
-    this.selectedItem.product_type = "Rolls";
-    this.selectedItem.price = 0;
-    this.selectedItem.order_id = this.order.order_id;
-    this.selectedItem.quantity = 1;
-    this.scrollService.scrollTo("#itemForm",700);
-  }
-
-  delete(content) {
-    this.modalService.open(content).result.then((result) => {
-      if (result == "delete") {
-        this.ordersService.delete(this.order_id).toPromise();
-        this.router.navigate(["/orders"]);
-      }
-    }, (reason) => {
-      //this.closeResult = `Dismissed ${this.getDismissReason(reason)}`;
-    });
-  }
-
-  OnItemSave(event) {
-    this.selectedItem = null;
-    this.ordersService.getItemsById(this.order_id).subscribe(data => this.order.items = data);
-    switch(event){
-     case "add" : this.alertService.success("Item added"); break;
-     case "update" : this.alertService.success("Item updated"); break;
-    }
-  }
-
-  OnItemDelete()
-  {
-    this.selectedItem = null;
-    this.ordersService.getItemsById(this.order_id).subscribe(data => this.order.items = data);
-    this.alertService.success("Item deleted");
   }
 }

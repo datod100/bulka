@@ -16,8 +16,8 @@ export class StatusesService {
       return this.http.get(environment.apiUrl+'/statuses/' + id);
   }
 
-  getCollectionsHistory() {
-    return this.http.get<any[]>(environment.apiUrl+'/collection_history', {})
+  getCycles() {
+    return this.http.get<any[]>(environment.apiUrl+'/cycles', {})
   }
 
   createCollectionsHistory(history: any) {

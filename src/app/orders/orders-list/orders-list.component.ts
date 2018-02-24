@@ -33,7 +33,7 @@ export class OrdersListComponent implements OnInit {
     private rowSelection;
     private getRowHeight;
     rowHeight = 25;
-   
+
     constructor(private ordersService: OrdersService,
         private clientService: ClientService,
         private router: Router,
@@ -83,7 +83,7 @@ export class OrdersListComponent implements OnInit {
                         params.value.forEach(function (order_item: OrderItem, idx, array) {
                             res += order_item.price * order_item.quantity;
                         }, this, params.value);
-                        return "<div title='"+res.toString()+" &#8362; + VAT'>"+(Math.round(res* 1.17*100)/100).toString() + " &#8362;</div>";
+                        return "<div title='" + res.toString() + " &#8362; + VAT'>" + (Math.round(res * 1.17 * 100) / 100).toString() + " &#8362;</div>";
                     }
                 }
             },
@@ -164,9 +164,9 @@ export class OrdersListComponent implements OnInit {
             columnsToHide.push(allColumns.find(item => item.colDef.field == "confirmation_date"))
             columnsToHide.push(allColumns.find(item => item.colDef.headerName == ""))
             columnsToHide.push(allColumns.find(item => item.colDef.headerName == "Sum"))
-            if (screenWidth<500){
+            if (screenWidth < 500) {
                 columnsToHide.push(allColumns.find(item => item.colDef.headerName == "#"))
-            }else{
+            } else {
                 params.columnApi.setColumnsVisible([allColumns.find(item => item.colDef.headerName == "#")], true);
             }
             params.columnApi.setColumnsVisible(columnsToHide, false);
