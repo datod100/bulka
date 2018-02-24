@@ -39,6 +39,7 @@ import { WfsiteService } from './_services/wfsite.service';
 import { OrdersEditItemComponent } from './orders/orders-edit-item/orders-edit-item.component';
 import { ScrollToModule } from 'ng2-scroll-to-el';
 import { OnlyNumber } from './_directives/only-number.directive';
+import { AgColorSelectComponent } from './_helpers/ag-color-select/ag-color-select.component';
 
 @NgModule({
     imports: [
@@ -52,7 +53,7 @@ import { OnlyNumber } from './_directives/only-number.directive';
         AutoCompleteModule,
         SpinnerModule,
         GrowlModule,
-        AgGridModule.withComponents([ListGridComponent, OrdersListGridComponent]),
+        AgGridModule.withComponents([ListGridComponent, OrdersListGridComponent, AgColorSelectComponent]),
     ],
     declarations: [
         AppComponent,
@@ -73,7 +74,8 @@ import { OnlyNumber } from './_directives/only-number.directive';
         ListGridComponent,
         OrdersListGridComponent,
         OrdersEditItemComponent,
-        OnlyNumber
+        OnlyNumber,
+        AgColorSelectComponent
     ],
     providers: [
         AuthGuard,

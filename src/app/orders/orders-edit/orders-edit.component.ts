@@ -1,12 +1,13 @@
 import { Component, OnInit, OnDestroy, NgModule } from '@angular/core';
-import { Order, Client, Status, OrderItem } from '../../_models/index';
-import { StatusesService, ClientService, OrdersService, AlertService, ProductService } from '../../_services/index';
+import { Order, Client, Status, OrderItem, Group } from '../../_models/index';
+import { StatusesService, ClientService, OrdersService, AlertService, ProductService, GroupService } from '../../_services/index';
 import { ActivatedRoute, Router } from '@angular/router';
 import { error } from 'selenium-webdriver';
 import { Observable } from 'rxjs/Observable';
 import { NgbModal, ModalDismissReasons } from '@ng-bootstrap/ng-bootstrap';
 import { GridApi } from 'ag-grid/dist/lib/gridApi';
 import { GridOptions, SelectCellEditor } from "ag-grid/main";
+import { AgColorSelectComponent } from '../../_helpers/ag-color-select/ag-color-select.component';
 
 
 function checkKey(event) {
@@ -54,6 +55,7 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
   cycles = [];
   headerTableStyle;
   tableStyle;
+  groups: Group[] = [];
 
   title;
   order: Order;
@@ -74,14 +76,20 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
     private ordersService: OrdersService,
     private productService: ProductService,
     private alertService: AlertService,
+    private groupService: GroupService,
     private clientService: ClientService) {
 
 
     this.gridOptions = <GridOptions>{};
     this.gridOptions.domLayout = 'autoHeight'
 
-    this.gridOptions2 = <GridOptions>{};
+    this.gridOptions2 = <GridOptions>{
+      frameworkComponents: {
+        agColorSelect : AgColorSelectComponent
+      }
+    };
     this.gridOptions2.domLayout = 'autoHeight'
+    
 
     this.context = { componentParent: this };
     this.context2 = { componentParent: this };
@@ -143,19 +151,21 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
         }
       },
       {
-        group: "קבוצה", field: "group", width: 120,
+        headerName: "קבוצה", field: "group", width: 120,
         cellStyle: function (params) {
-          if (params.data.cellStyle) {
-            return params.data.cellStyle;
+          if (params.value){
+            return {backgroundColor:params.value.color};
           } else {
             return null;
           }
         },
         editable: true,
-        cellEditor: 'agSelectCellEditor',
-        cellEditorParams: {          
-          values: ['Male', 'Female']
-        },
+        cellEditor: "agColorSelect",
+        cellRenderer : (params)=>{
+          if (params.value){
+            return params.value.name;
+          }
+        }
       },
       {
         headerName: "שעת אספקה", field: "supply_time", width: 85, cellClass: "header-bold", editable: false,
@@ -261,11 +271,13 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
 
     Observable.forkJoin(
       this.statusesService.getCycles(),
-      this.productService.getAll()
+      this.productService.getAll(),
+      this.groupService.getAll()
     ).subscribe(
       data => {
         this.cycles = data[0];
         this.products = data[1];
+        this.groups = data[2];
 
         this.buildHeaderTable();
 
