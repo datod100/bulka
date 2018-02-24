@@ -154,10 +154,7 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
         editable: true,
         cellEditor: 'agSelectCellEditor',
         cellEditorParams: {          
-          values: ['Male', 'Female'],
-          cellRenderer: function (params){
-            return "<span style='color:red'>" + params.value + "</span>";
-          }
+          values: ['Male', 'Female']
         },
       },
       {
