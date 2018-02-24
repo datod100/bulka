@@ -1,10 +1,18 @@
 <div class="center-block">
   <div class="center-block" style="display: table">
-  <h3>הזמנות</h3>
-  <ag-grid-angular dir="ltr" class="ag-theme-fresh"  [ngStyle]="headerTableStyle" [columnDefs]="columnDefs" [context]="context"
-    [frameworkComponents]="frameworkComponents" [gridOptions]="gridOptions"
-    (gridReady)="onGridReady($event)"[defaultColDef]="defaultColDef"
-    [enableRtl]="true" [animateRows]="true">
-  </ag-grid-angular>
+    <h3>סיכום הזמנות</h3>
+    <ag-grid-angular dir="ltr" class="ag-theme-fresh" [ngStyle]="headerTableStyle" [columnDefs]="columnDefs" [context]="context"
+      [gridOptions]="gridOptions" (gridReady)="onGridReady($event)" [defaultColDef]="defaultColDef"
+      (cellValueChanged)="headerTableCellValueChanged($event)" [enterMovesDownAfterEdit]="true" [enableRtl]="true" [animateRows]="true">
+    </ag-grid-angular>
+  </div>
 </div>
+
+<div class="center-block pt-4">
+  <div class="center-block" style="display: table">
+    <h3>פירוט הזמנות</h3>
+    <ag-grid-angular dir="ltr" class="ag-theme-fresh" [ngStyle]="tableStyle" [columnDefs]="columnDefs2" [context]="context2"[gridOptions]="gridOptions2" (gridReady)="onGridReady2($event)" [defaultColDef]="defaultColDef2"
+    [enterMovesDownAfterEdit]="true" [enableRtl]="true" [animateRows]="true">
+    </ag-grid-angular>
+  </div>
 </div>
