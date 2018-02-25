@@ -15,3 +15,11 @@ export class Order {
     paid : number;
     items : OrderItem[];
 }
+
+export class OrderSummaryItem{    
+    index_id: number;
+    order_id: number;
+    cycle_id: number;
+    product_id: number;
+    quantity: number;
+}

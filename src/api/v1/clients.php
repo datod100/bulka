@@ -18,6 +18,10 @@ $app->get('/clients(/:client_id)', function ($client_id=null) use ($app) {
         $row['client_id'] = (int)$row['client_id'];
         $row['hetpei'] = (int)$row['hetpei'];
         $row['group_id'] = (int)$row['group_id'];
+        $row['travel_duration'] = substr($row['travel_duration'], 0, -3);
+        $row['default_time1'] = substr($row['default_time1'], 0, -3);
+        $row['default_time2'] = substr($row['default_time2'], 0, -3);
+        $row['default_time3'] = substr($row['default_time3'], 0, -3);
         $response[] = $row;
     }
     //echoResponse(200, var_dump($response)); return;

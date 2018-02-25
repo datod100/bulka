@@ -11,8 +11,11 @@
 <div class="center-block pt-4">
   <div class="center-block" style="display: table">
     <h3>פירוט הזמנות</h3>
-    <ag-grid-angular dir="ltr" class="ag-theme-fresh" [ngStyle]="tableStyle" [columnDefs]="columnDefs2" [context]="context2"[gridOptions]="gridOptions2" (gridReady)="onGridReady2($event)" [defaultColDef]="defaultColDef2"
-    [enterMovesDownAfterEdit]="true" [enableRtl]="true" [animateRows]="true">
+    <ag-grid-angular dir="ltr" class="ag-theme-fresh mb-2" [ngStyle]="tableStyle" [columnDefs]="columnDefs2" [context]="context2"[gridOptions]="gridOptions2" (gridReady)="onGridReady2($event)" [defaultColDef]="defaultColDef2"
+    [enterMovesDownAfterEdit]="true" [enableRtl]="true" [animateRows]="true" (cellValueChanged)="tableCellValueChanged($event)">
     </ag-grid-angular>
+    <button class="btn btn-primary mr-2"><i class="fa fa-save"></i> שמור</button>
+    <button class="btn btn-secondary mr-2"><i class="fa fa-plus-circle"></i> הוסף שורה</button>
+    <button class="btn btn-secondary mr-2"><i class="fa fa-print"></i> הדפס תעודות משלוח</button>
   </div>
 </div>

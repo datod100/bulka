@@ -54,6 +54,7 @@ export class EditComponent implements OnInit, OnDestroy {
   }
 
   timeToNgbTimeStruct(time) {
+    if (time==null || !time) return null;
     let tTime = new Date("1968-11-16T" + time);
     return { hour: tTime.getHours(), minute: tTime.getMinutes(), second: 0 };
   }

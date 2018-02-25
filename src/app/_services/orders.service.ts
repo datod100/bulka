@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 
-import { Order, OrderItem } from '../_models/index';
+import { Order, OrderItem, OrderSummaryItem } from '../_models/index';
 
 @Injectable()
 export class OrdersService {
@@ -16,8 +16,8 @@ export class OrdersService {
         return this.http.get<Order>(environment.apiUrl + '/orders/' + id);
     }
 
-    getItemsById(order_id: number) {
-        return this.http.get<OrderItem[]>(environment.apiUrl + '/order_items/' + order_id);
+    getSummaryItemsById(order_id: number) {
+        return this.http.get<OrderSummaryItem[]>(environment.apiUrl + '/order/summary/' + order_id);
     }
 
     updateItem(order_item: OrderItem) {

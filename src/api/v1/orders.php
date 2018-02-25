@@ -1,7 +1,7 @@
 <?php
 
 //get all/one order
-$app->get('/order_items/:id', function ($id) use ($app) {
+$app->get('/order/summary/:order_id', function ($order_id) use ($app) {
     //echoResponse(200, var_dump($id)); return;
     $response = array();
     $db = new DbHandler();
@@ -9,14 +9,14 @@ $app->get('/order_items/:id', function ($id) use ($app) {
         echoResponse(403, "Not authenticated");
         return;
     }
-    $q = "select * from order_items WHERE order_id=".$id." ORDER BY collection_name DESC";
+    $q = "select * from order_summary WHERE order_id=".$order_id;
     $res = $db->getRecords($q);
 
     while ($row = $res->fetch_assoc()) {
-        $row["order_item_id"] = (int)$row["order_item_id"];
+        $row["cycle_id"] = (int)$row["cycle_id"];
         $row["order_id"] = (int)$row["order_id"];
+        $row["product_id"] = (int)$row["product_id"];
         $row["quantity"] = (int)$row["quantity"];
-        $row["price"] = (float)$row["price"];
         $response[] = $row;
     }
     echoResponse(200, $response);
