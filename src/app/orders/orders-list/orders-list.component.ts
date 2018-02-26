@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { Order, Status, Client, OrderItem } from '../../_models/index';
+import { Order, Client, OrderItem } from '../../_models/index';
 import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/operator/map';
 import { environment } from '../../../environments/environment';
@@ -22,7 +22,7 @@ import { Router } from '@angular/router';
 })
 export class OrdersListComponent implements OnInit {
     orders: Order[] = [];
-    statuses: Status[] = [];
+    statuses = [];
     clients: Client[] = [];
     closeResult: string;
     gridOptions: GridOptions;
@@ -50,7 +50,7 @@ export class OrdersListComponent implements OnInit {
         };
 
         this.rowSelection = "single";
-        this.statusesService.getAll().subscribe(statuses => { this.statuses = statuses; });
+        this.statusesService.getStatuses().subscribe(statuses => { this.statuses = statuses; });
         this.clientService.getAll().subscribe(clients => { this.clients = clients; });
 
         this.columnDefs = [
@@ -80,9 +80,6 @@ export class OrdersListComponent implements OnInit {
                 cellRenderer: function (params) {
                     if (params.value != null) {
                         var res: number = 0;
-                        params.value.forEach(function (order_item: OrderItem, idx, array) {
-                            res += order_item.price * order_item.quantity;
-                        }, this, params.value);
                         return "<div title='" + res.toString() + " &#8362; + VAT'>" + (Math.round(res * 1.17 * 100) / 100).toString() + " &#8362;</div>";
                     }
                 }
@@ -114,10 +111,6 @@ export class OrdersListComponent implements OnInit {
                 cellRenderer: function (params) {
                     if (params.value != null) {
                         var res = "<div class='order-items'>";
-                        params.value.forEach(function (order_item: OrderItem, idx, array) {
-                            var style = (idx === array.length - 1) ? "" : "delimiter";
-                            res += sprintf("<div class='%s'><div class='collection mobileshow'>%s</div><div class='article'>%s</div><div class='qty'>%d</div><div class='units mobileshow'>%s</div></div>", style, order_item.collection_name, order_item.article, order_item.quantity, order_item.product_type);
-                        }, this, params.value);
                         //var row: RowNode = params.node;
                         //row.setRowHeight(21 * params.value.length + 4);
                         return res;
@@ -188,9 +181,6 @@ export class OrdersListComponent implements OnInit {
         modalRef.result.then((result) => {
             if (result != null) {
                 //order.name = result.name;
-                this.ordersService.update(result).subscribe((res: any) => {
-                    this.loadAllOrders();
-                }, error => console.log(error));
             }
         }, (reason) => {
             this.closeResult = `Dismissed ${this.getDismissReason(reason)}`;
@@ -204,9 +194,6 @@ export class OrdersListComponent implements OnInit {
         modalRef.componentInstance.message = "Are you sure you want to delete '" + order.order_id + "' ?";
         modalRef.result.then((order_id) => {
             if (order_id != null) {
-                this.ordersService.delete(order_id).subscribe((res: any) => {
-                    this.loadAllOrders();
-                }, error => console.log(error));
             }
         }, (reason) => {
             this.closeResult = `Dismissed ${this.getDismissReason(reason)}`;
@@ -228,24 +215,6 @@ export class OrdersListComponent implements OnInit {
             orders => this.orders = orders,
             err => { },
             () => {
-                this.orders.forEach(function (order, idx, array) {
-                    this.ordersService.getItemsById(order.order_id).subscribe(order_items => { order.items = order_items; },
-                        err => { },
-                        () => {
-                            if (idx === array.length - 1) {
-                                var params = { force: false };
-                                //this.gridApi.refreshCells(params);
-                                //this.gridApi.onRowHeightChanged();
-                                //this.gridApi.resetRowHeights();
-                                //this.gridApi.redrawRows();
-                                //this.gridApi.refreshView();
-                                setTimeout(function (param1) {
-                                    param1.gridApi.setRowData(array);
-                                }, 300, this);
-                            }
-                        }
-                    );
-                }, this)
             }
         );
     }

@@ -21,12 +21,6 @@ export class OrdersEditItemComponent implements OnInit {
   @Input()
   set item(selectedItem: OrderItem) {
     if (selectedItem != null) {
-      this.selectedCollection = this.collections.find(item => item.name == selectedItem.collection_name);
-      if (this.selectedCollection) {
-        this.wfsiteService.getSKUs(this.selectedCollection.id).subscribe(
-          data => this.articles = data
-        );
-      }
     }
     this._item = selectedItem;
   }
@@ -63,7 +57,6 @@ export class OrdersEditItemComponent implements OnInit {
   }
 
   collectionSelected(event) {
-    this.item.collection_name = event.name;
     this.wfsiteService.getSKUs(event.id).subscribe(
       data => this.articles = data
     );
@@ -78,54 +71,8 @@ export class OrdersEditItemComponent implements OnInit {
     this.filteredArticles = this.articles.filter(v => v.toLowerCase().indexOf(event.query.toLowerCase()) > -1);
   }
 
-  delete(content) {
-    this.modalService.open(content).result.then((result) => {
-      if (result == "delete") {
-        this.ordersService.deleteItem(this.item.order_item_id).subscribe(
-          data => {
-            this.OnDelete.emit();
-          }
-        );
-      }
-    }, (reason) => {
-      //this.closeResult = `Dismissed ${this.getDismissReason(reason)}`;
-    });
-  }
-
   close(){
     this.OnSave.emit("close");
   }
 
-  save(collection) {
-    if (!isObject(collection)) {
-      this.item.collection_name = collection;
-      this.utilsService.createCollectionsHistory({ 'collection': collection, 'article': this.item.article }).subscribe(
-        data => { },
-        err => { },
-        () => {
-          this.refreshData();
-        }
-      );
-    }
-
-    if (this.item.order_item_id) { //update
-      this.ordersService.updateItem(this.item).subscribe(
-        data => { },
-        err => { },
-        () => {
-          this.OnSave.emit("update");
-        }
-      );
-    } else {
-      this.ordersService.createItem(this.item).subscribe(
-        data => { },
-        err => {
-
-        },
-        () => {
-          this.OnSave.emit("add");
-        }
-      );
-    }
-  }
 }

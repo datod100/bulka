@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy, NgModule } from '@angular/core';
-import { Order, Client, Status, OrderItem, Group, OrderSummaryItem } from '../../_models/index';
+import { Order, Client, OrderItem, Group, OrderSummaryItem } from '../../_models/index';
 import { StatusesService, ClientService, OrdersService, AlertService, ProductService, GroupService } from '../../_services/index';
 import { ActivatedRoute, Router } from '@angular/router';
 import { error } from 'selenium-webdriver';
@@ -57,18 +57,16 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
   tableStyle;
   groups: Group[] = [];
   summaryItems: OrderSummaryItem[] = [];
-
+  orderLines: Order[] = [];
+  orderProducts: OrderItem[] = [];
+  statuses: string[] = [];
+  isNew: boolean = false;
   title;
-  order: Order;
+
   public clients: Client[] = [];
-  public filteredClients: Client[] = [];
-  public collections = [];
-  public filteredCollections = [];
   order_id: number;
   private sub: any;
-  confirmation_date: Date;
-  selectedItem: OrderItem;
-  selectedCollection: { name: string; id: number } = { name: null, id: -1 };
+
 
   constructor(private statusesService: StatusesService,
     private route: ActivatedRoute,
@@ -90,10 +88,7 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
       }
     };
     this.gridOptions2.domLayout = 'autoHeight'
-
-
     this.context = { componentParent: this };
-    this.context2 = { componentParent: this };
 
     this.columnDefs = [
       {
@@ -146,61 +141,31 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
         }
       },
       {
-        headerName: "קבוצה", field: "group", width: 80,
+        headerName: "קבוצה", field: "group.name", width: 80,
         cellStyle: function (params) {
-          if (params.value) {
-            return { backgroundColor: params.value.color };
+          if (params.data.group) {
+            return { backgroundColor: params.data.group.color };
           } else {
             return null;
           }
         },
         editable: true,
-        cellEditor: "agColorSelect",
-        cellRenderer: (params) => {
-          if (params.value) {
-            return params.value.name;
-          }
-        }
+        cellEditor: "agColorSelect"
       },
       {
-        headerName: "שם הלקוח", field: "client", width: 150, editable: false,
-        cellRenderer: function (params) {
-          if (params.value) {
-            return params.value.name;
-          }
-        }
+        headerName: "שם הלקוח", field: "client.name", width: 150, editable: false, rowDrag: true
       },
       {
-        headerName: "איש קשר", field: "client", width: 100, editable: false,
-        cellRenderer: function (params) {
-          if (params.value) {
-            return params.value.contact_person;
-          }
-        }
+        headerName: "איש קשר", field: "client.contact_person", width: 100, editable: false
       },
       {
-        headerName: "טלפון", field: "client", width: 110, editable: false,
-        cellRenderer: function (params) {
-          if (params.value) {
-            return params.value.phone;
-          }
-        }
+        headerName: "טלפון", field: "client.phone", width: 110, editable: false
       },
       {
         headerName: "שעת אספקה", field: "supply_time", width: 85, cellClass: "header-bold", editable: true
       }
     ];
 
-    this.order = new Order();
-    this.order.client = new Client();
-    this.order.status = new Status();
-    this.order.status_id = 2;
-    var dt = new Date();
-    dt.setUTCFullYear(dt.getFullYear(), dt.getMonth() + 1, dt.getDate());
-
-    this.order.confirmation_date = dt;
-    this.order.supply_date = null;
-    this.selectedCollection.name = "Ami";
   }
 
 
@@ -216,13 +181,14 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
       let colWidth = this.products[k].name.length * 9;
 
       for (let i = 0; i < this.cycles.length; i++) {
-        let value = this.summaryItems.find(e=> e.cycle_id == this.cycles[i].cycle_id && e.product_id == this.products[k].product_id);
-        this.headerData[i]["product" + this.products[k].product_id] = (value!=null)?value.quantity:'';
+        let value = this.summaryItems.find(e => e.cycle_id == this.cycles[i].cycle_id && e.product_id == this.products[k].product_id);
+        this.headerData[i]["product" + this.products[k].product_id] = (value != null) ? value.quantity : '';
       }
 
       this.columnDefs.push({
         headerName: this.products[k].name,
         field: "product" + this.products[k].product_id,
+        cellClass:"center-cell",
         editable: function (params) {
           if (params.data.disableEdit) return false
           return true;
@@ -243,24 +209,7 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
     this.headerTableCalc();
   }
 
-
   private buildTable() {
-    let client1: Client = new Client();
-    client1.contact_person = "אלון";
-    client1.name = "לקוח 1";
-    client1.phone = "050-9290018";
-
-    for (let i = 0; i < this.clients.length; i++) {
-      this.tableData.push({ select: false, status: 'חדש', group: this.groups.find(e => this.clients[i].group_id == e.group_id), client: this.clients[i], supply_time: this.clients[i].default_time1 });
-      if (this.clients[i].default_time2) {
-        this.tableData.push({ select: false, status: 'חדש', group: this.groups.find(e => this.clients[i].group_id == e.group_id), client: this.clients[i], supply_time: this.clients[i].default_time2 });
-      }
-      if (this.clients[i].default_time3) {
-        this.tableData.push({ select: false, status: 'חדש', group: this.groups.find(e => this.clients[i].group_id == e.group_id), client: this.clients[i], supply_time: this.clients[i].default_time3 });
-      }
-
-    }
-
     for (let k = 0; k < this.products.length; k++) {
       let colWidth = this.products[k].name.length * 9;
 
@@ -283,7 +232,6 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
 
     this.gridApi2.setColumnDefs(this.columnDefs2);
     this.calcGridWidth();
-    this.gridApi2.setRowData(this.tableData);
 
   }
 
@@ -295,7 +243,7 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
   }
 
   tableCellValueChanged(params) {
-    if (params.colDef.field != 'status' && params.colDef.field != 'supply_time') {
+    if (params.colDef.field != 'status' && params.colDef.field != 'supply_time' && params.colDef.field != 'group') {
       if (isNaN(+params.value)) {
         params.data[params.colDef.field] = null;
       }
@@ -305,13 +253,14 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
   }
 
   tableCalc() {
-    let rowOffset = this.cycles.length+1;
+    let rowOffset = this.cycles.length + 1;
 
     for (let k = 0; k < this.products.length; k++) {
       let colSum = 0;
       for (let i = 0; i < this.tableData.length; i++) {
-        if (this.tableData[i].status=="נשלח"){
-          colSum += +this.tableData[i]["product" + this.products[k].product_id];
+        if (this.tableData[i].status == "נשלח") {
+          let quantity = +this.tableData[i]["product" + this.products[k].product_id];
+          if (!isNaN(quantity)) colSum += quantity;
         }
       }
       this.headerData[rowOffset]["product" + this.products[k].product_id] = colSum;
@@ -329,7 +278,7 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
         this.headerData[rowOffset]["product" + this.products[k].product_id] += +this.headerData[i]["product" + this.products[k].product_id];
       }
 
-      if (isNaN(+this.headerData[rowOffset + 1]["product" + this.products[k].product_id])) this.headerData[rowOffset + 1]["product" + this.products[k].product_id]=0;
+      if (isNaN(+this.headerData[rowOffset + 1]["product" + this.products[k].product_id])) this.headerData[rowOffset + 1]["product" + this.products[k].product_id] = 0;
       this.headerData[rowOffset + 2]["product" + this.products[k].product_id] = this.headerData[rowOffset]["product" + this.products[k].product_id] - this.headerData[rowOffset + 1]["product" + this.products[k].product_id];
     }
     this.gridApi.setRowData(this.headerData);
@@ -342,38 +291,26 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
       this.statusesService.getCycles(),
       this.productService.getAll(),
       this.groupService.getAll(),
-      this.ordersService.getSummaryItemsById(0)
+      this.ordersService.getSummaryItemsById(this.order_id),
+      this.clientService.getAll(),
+      this.statusesService.getStatuses()
     ).subscribe(
       data => {
         this.cycles = data[0];
         this.products = data[1];
         this.groups = data[2];
         this.summaryItems = data[3];
+        this.clients = data[4];
+        this.statuses = data[5];
+
         this.buildHeaderTable();
-      },
-      err => console.error(err),
-      () => {
-        if (this.order_id) {
-          this.title = "Edit";
+        this.buildTable();
 
-          Observable.forkJoin(
-            this.ordersService.getById(this.order_id),
-            this.ordersService.getSummaryItemsById(this.order_id)
-          ).subscribe(
-            data => {
-              this.order = data[0][0];
-              //this.order.items = data[1];
-              this.order.client = this.clients.find(item => item.client_id === this.order.client_id);
-              if (this.order.confirmation_date) this.order.confirmation_date = new Date(this.order.confirmation_date);
-              if (this.order.supply_date) this.order.supply_date = new Date(this.order.supply_date);
-            },
-            err => console.error(err)
-          );
-
+        if (!isNaN(this.order_id)) {
+          this.loadOrder();
         } else {
-          this.title = "Create";
+          this.fillNewOrder();
         }
-
       }
     );
 
@@ -381,44 +318,60 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
     //this.gridApi.resetRowHeights();
   }
 
-  onGridReady2(params) {
-    this.gridApi2 = params.api;
-
+  loadOrder() {
     Observable.forkJoin(
-      this.clientService.getAll()
+      this.ordersService.getByCriteria(this.order_id),
+      this.ordersService.getOrderProducts(this.order_id)
     ).subscribe(
       data => {
-        this.clients = data[0];
+        this.orderLines = data[0];
+        this.orderProducts = data[1];
 
-        this.buildTable();
+        if (this.orderLines.length > 0) {
+          for (let i = 0; i < this.orderLines.length; i++) {
+            this.orderLines[i].client = this.clients.find(e => e.client_id == this.orderLines[i].client_id);
+            let row = {
+              select: false,
+              status: this.statuses[this.orderLines[i].status_id],
+              group: this.groups.find(e => this.orderLines[i].group_id == e.group_id),
+              client: this.orderLines[i].client,
+              supply_time: this.orderLines[i].supply_time
+            }
 
-      },
-      err => console.error(err),
-      () => {
-        if (this.order_id) {
-          this.title = "Edit";
+            let products = this.orderProducts.filter(e => e.index_id == this.orderLines[i].index_id);
+            for (let k = 0; k < products.length; k++) {
+              row["product" + products[k].product_id] = products[k].quantity;
+            }
 
-          Observable.forkJoin(
-            this.ordersService.getById(this.order_id),
-            this.ordersService.getSummaryItemsById(this.order_id)
-          ).subscribe(
-            data => {
-              this.order = data[0][0];
-              //this.order.items = data[1];
-              this.order.client = this.clients.find(item => item.client_id === this.order.client_id);
-              if (this.order.confirmation_date) this.order.confirmation_date = new Date(this.order.confirmation_date);
-              if (this.order.supply_date) this.order.supply_date = new Date(this.order.supply_date);
-            },
-            err => console.error(err)
-          );
-
+            this.tableData.push(row);
+          }
         } else {
-          this.title = "Create";
+          this.fillNewOrder();
         }
 
-      }
+        this.gridApi2.setRowData(this.tableData);
+        this.tableCalc();
+      },
+      err => console.error(err)
     );
 
+  }
+
+  fillNewOrder() {
+    for (let i = 0; i < this.clients.length; i++) {
+      this.tableData.push({ select: false, status: 'חדש', group: this.groups.find(e => this.clients[i].group_id == e.group_id), client: this.clients[i], supply_time: this.clients[i].default_time1 });
+      if (this.clients[i].default_time2) {
+        this.tableData.push({ select: false, status: 'חדש', group: this.groups.find(e => this.clients[i].group_id == e.group_id), client: this.clients[i], supply_time: this.clients[i].default_time2 });
+      }
+      if (this.clients[i].default_time3) {
+        this.tableData.push({ select: false, status: 'חדש', group: this.groups.find(e => this.clients[i].group_id == e.group_id), client: this.clients[i], supply_time: this.clients[i].default_time3 });
+      }
+    }
+    this.gridApi2.setRowData(this.tableData);
+  }
+
+  onGridReady2(params) {
+    this.gridApi2 = params.api;
   }
 
   private calcGridWidth() {
@@ -445,7 +398,10 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
     this.sub = this.route.params.subscribe(params => {
       this.order_id = +params['id'];
       var action = params['action'];
-
+      if (isNaN(this.order_id)) {
+        this.ordersService.getTodayOrderId().subscribe(order_id => this.order_id = order_id);
+        this.isNew = true;
+      }
     });
   }
 
@@ -453,34 +409,69 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
     this.sub.unsubscribe();
   }
 
-  save(navigateOff) {
-    this.order.client_id = this.order.client.client_id;
-    this.order.status_id = this.order.status.status_id;
+  saveOrder() {
+    this.gridApi.stopEditing(false);
+    this.gridApi2.stopEditing(false);
 
-    if (this.order.order_id) {
-      this.ordersService.update(this.order).subscribe(
-        data => { },
-        err => { },
-        () => {
-          this.router.navigate(["/orders"]);
+    //save summary
+    let summary: OrderSummaryItem[] = [];
+    for (let i = 0; i < this.cycles.length; i++) {
+      for (let k = 0; k < this.products.length; k++) {
+        let quantity = +this.headerData[i]["product" + this.products[k].product_id];
+        if (!isNaN(quantity) && quantity != 0) {
+          let item = new OrderSummaryItem();
+          item.cycle_id = this.cycles[i].cycle_id;
+          item.order_id = this.order_id;
+          item.product_id = this.products[k].product_id;
+          item.quantity = quantity;
+          summary.push(item);
         }
-      );
-    } else {
-      this.ordersService.create(this.order).subscribe(
-        data => {
-          if (navigateOff) {
-            this.router.navigate(["/orders"]);
-          } else {
-            this.router.navigate(["/orders/edit/" + data + "/AddItem"]);
-          }
-        },
-        err => {
-          this.alertService.error(err.message);
-        },
-        () => {
-        }
-      );
+      }
     }
 
+    if (summary.length > 0) {
+      this.ordersService.saveSummaryItems(summary).subscribe();
+    }
+
+    //save order lines
+    let orderLines: Order[] = [];
+    for (let i = 0; i < this.tableData.length; i++) {
+      let row = this.gridApi2.getModel().getRow(i).data;
+      let order = new Order();
+      order.client_id = row.client.client_id;
+      order.group_id = row.group.group_id;
+      order.index_id = row.index_id;
+      order.order_id = this.order_id;      
+      order.sort_order = i;
+      order.status_id = this.statuses.findIndex(e => e == row.status);
+      order.supply_time = row.supply_time;
+      orderLines.push(order);
+    }
+
+    this.ordersService.saveOrderLines(orderLines).subscribe(
+      data => {
+        let index_id = data;
+
+        let orderProducts: OrderItem[] = [];
+        for (let i = 0; i < this.tableData.length; i++) {
+          for (let k = 0; k < this.products.length; k++) {
+            let quantity = +this.tableData[i]["product" + this.products[k].product_id];
+            if (!isNaN(quantity) && quantity != 0) {
+              let item = new OrderItem();
+              item.index_id = index_id[i];
+              item.order_id = this.order_id;
+              item.product_id = this.products[k].product_id;
+              item.quantity = quantity;
+              orderProducts.push(item);
+            }
+          }
+        }
+        this.ordersService.saveOrderProducts(orderProducts).subscribe();
+        this.alertService.success("רשומה עודכנה בהצלחה");
+      },
+      err => { }
+    );
   }
+
+
 }

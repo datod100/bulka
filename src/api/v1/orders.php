@@ -1,6 +1,6 @@
 <?php
 
-//get all/one order
+// order all summary items
 $app->get('/order/summary/:order_id', function ($order_id) use ($app) {
     //echoResponse(200, var_dump($id)); return;
     $response = array();
@@ -9,10 +9,14 @@ $app->get('/order/summary/:order_id', function ($order_id) use ($app) {
         echoResponse(403, "Not authenticated");
         return;
     }
-    $q = "select * from order_summary WHERE order_id=".$order_id;
-    $res = $db->getRecords($q);
+    $q = "select * from order_summary WHERE order_id=?";
+    $stmt = $db->conn->stmt_init();
+    $stmt->prepare($q);
+    $stmt->bind_param('d', $order_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
 
-    while ($row = $res->fetch_assoc()) {
+    while ($row = $result->fetch_assoc()) {
         $row["cycle_id"] = (int)$row["cycle_id"];
         $row["order_id"] = (int)$row["order_id"];
         $row["product_id"] = (int)$row["product_id"];
@@ -22,25 +26,60 @@ $app->get('/order/summary/:order_id', function ($order_id) use ($app) {
     echoResponse(200, $response);
 });
 
-//update order item
-$app->put('/order_items', function () use ($app) {
-    $res = json_decode($app->request->getBody());
+
+// order all order products
+$app->get('/order/products/:order_id', function ($order_id) use ($app) {
     $response = array();
     $db = new DbHandler();
     if (!isAuthenticated()){
         echoResponse(403, "Not authenticated");
         return;
     }
-    
-    $q = sprintf("UPDATE order_items SET collection_name='%s', article='%s', quantity=%d, product_type='%s', price=%f WHERE order_item_id=%d",
-        trim($res->collection_name), $res->article, $res->quantity, $res->product_type, $res->price, $res->order_item_id);
-    
-    $res = $db->execute($q);
+    $q = "SELECT op.* FROM order_products op INNER JOIN orders o ON op.index_id=o.index_id WHERE o.order_id=?";
+    $stmt = $db->conn->stmt_init();
+    $stmt->prepare($q);
+    $stmt->bind_param("d", $order_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    while ($row = $result->fetch_assoc()) {
+        $row["index_id"] = (int)$row["index_id"];
+        $row["product_id"] = (int)$row["product_id"];
+        $row["quantity"] = (int)$row["quantity"];
+        $response[] = $row;
+    }
+    echoResponse(200, $response);
+});
+
+//save summary items
+$app->put('/order/summary/save', function () use ($app) {
+    $items = json_decode($app->request->getBody());
+    $response = array();
+    $db = new DbHandler();
+    if (!isAuthenticated()){
+        echoResponse(403, "Not authenticated");
+        return;
+    }
+
+    $q = "DELETE FROM `order_summary` WHERE order_id=?";
+    $stmt = $db->conn->stmt_init();
+    $stmt->prepare($q);
+    $stmt->bind_param('d',$items[0]->order_id);
+    $stmt->execute();
+
+    for($i = 0; $i < count($items); ++$i) {    
+        $q = "INSERT INTO `order_summary`(`index_id`, `order_id`, `cycle_id`, `product_id`, `quantity`) VALUES (?,?,?,?,?)";
+        $stmt = $db->conn->stmt_init();
+        $stmt->prepare($q);
+        $stmt->bind_param('ddddd',$items[$i]->index_id, $items[$i]->order_id, $items[$i]->cycle_id, $items[$i]->product_id, $items[$i]->quantity);
+        $stmt->execute();
+    }
+
     echoResponse(200, 'OK');
 });
 
-//create order item
-$app->post('/order_items', function () use ($app) {
+//create or get order for today
+$app->get('/orders/today', function () use ($app) {
     $res = json_decode($app->request->getBody());
     //echoResponse(200,$res );return;
     $db = new DbHandler();
@@ -48,27 +87,28 @@ $app->post('/order_items', function () use ($app) {
         echoResponse(403, "Not authenticated");
         return;
     }
-    $q = sprintf("INSERT INTO order_items SET collection_name='%s', article='%s', quantity=%d, product_type='%s', price=%f,  order_id=%d",
-        trim($res->collection_name), $res->article, $res->quantity, strtolower($res->product_type), $res->price, $res->order_id);
-    $res = $db->execute($q);
-    echoResponse(200, 'OK');
-});
+    $q= "INSERT INTO `order_date` (`order_date`)
+    SELECT date(now()) FROM DUAL WHERE NOT EXISTS (
+        SELECT `order_date` FROM order_date WHERE order_date= date(now())
+    ) LIMIT 1;";
 
-//delete order
-$app->delete('/order_items/:id', function ($id) {
-    $response = array();
-    $db = new DbHandler();
-    if (!isAuthenticated()){
-        echoResponse(403, "Not authenticated");
-        return;
+    $stmt = $db->conn->stmt_init();
+    $stmt->prepare($q);
+    $stmt->execute();
+    $order_id = $stmt->insert_id;
+
+    if ($order_id == 0){
+        $q= "SELECT order_id FROM order_date WHERE order_date= date(now())";
+        $result = $db->getOneRecord($q);
+        $order_id = (int)$result["order_id"];
     }
-    $q = "delete from order_items where order_item_id=".$id;
-    $res = $db->execute($q);
-    echoResponse(200, 'OK');
+    
+    echoResponse(200, $order_id);
 });
 
-//get all/one order
-$app->get('/orders(/:id)', function ($id=null) use ($app) {
+
+//get one order
+$app->get('/orders/:filter', function ($filter=null) use ($app) {
     //echoResponse(200, var_dump($id)); return;
     $response = array();
     $db = new DbHandler();
@@ -76,69 +116,79 @@ $app->get('/orders(/:id)', function ($id=null) use ($app) {
         echoResponse(403, "Not authenticated");
         return;
     }
-    $q = "select * from orders";
-    if (isset($id)){
-        $q .= " WHERE order_id=".$id;
-    }
-    $q .= " ORDER BY confirmation_date DESC, confirmation_number DESC";
-    $res = $db->getRecords($q);
+    $q = "SELECT o.* FROM `order_date` od INNER JOIN `orders` o ON od.order_id = o.order_id WHERE (od.order_date = ? OR od.order_id = ?) ORDER BY o.sort_order, o.index_id";
+    $stmt = $db->conn->stmt_init();
+    $stmt->prepare($q);
+    $stmt->bind_param('ss',$filter,$filter);
+    $stmt->execute();
+    $result = $stmt->get_result();
 
-    while ($row = $res->fetch_assoc()) {        
+    while ($row = $result->fetch_assoc()) {
+        $row["index_id"] = (int)$row["index_id"];
+        $row["sort_order"] = (int)$row["sort_order"];
         $row["order_id"] = (int)$row["order_id"];
-        $row["status_id"] = (int)$row["status_id"];
         $row["client_id"] = (int)$row["client_id"];
+        $row["status_id"] = (int)$row["status_id"];
+        $row["group_id"] = (int)$row["group_id"];
+        $row['supply_time'] = substr($row['supply_time'], 0, -3);
         $response[] = $row;
     }
     echoResponse(200, $response);
 });
 
-//delete order
-$app->delete('/orders/:id', function ($id) {
+//save summary items
+$app->put('/orders/save', function () use ($app) {
+    $items = json_decode($app->request->getBody());
     $response = array();
     $db = new DbHandler();
     if (!isAuthenticated()){
         echoResponse(403, "Not authenticated");
         return;
     }
-    $q = "delete from orders where order_id=".$id;
-    $res = $db->execute($q);
-    echoResponse(200, 'OK');
+
+    $q = "DELETE FROM `orders` WHERE order_id=?";
+    $stmt = $db->conn->stmt_init();
+    $stmt->prepare($q);
+    $stmt->bind_param('d',$items[0]->order_id);
+    $stmt->execute();
+
+    for($i = 0; $i < count($items); ++$i) {    
+        $q = "INSERT INTO `orders` (`sort_order`, `order_id`, `client_id`, `status_id`, `group_id`, `supply_time`) VALUES (?,?,?,?,?,?)";
+        $stmt = $db->conn->stmt_init();
+        $stmt->prepare($q);
+        $stmt->bind_param('ddddds',$items[$i]->sort_order, $items[$i]->order_id, $items[$i]->client_id, $items[$i]->status_id, $items[$i]->group_id, $items[$i]->supply_time);
+        $stmt->execute();
+        $index_id[] = $stmt->insert_id;
+    }
+
+    echoResponse(200, $index_id);
 });
 
-//update order
-$app->put('/orders', function () use ($app) {
-    $res = json_decode($app->request->getBody());
+
+//save order products
+$app->put('/order/products/save', function () use ($app) {
+    $items = json_decode($app->request->getBody());
     $response = array();
     $db = new DbHandler();
     if (!isAuthenticated()){
         echoResponse(403, "Not authenticated");
         return;
     }
-    $q = "UPDATE orders SET client_id=?, status_id=?, confirmation_number=?, confirmation_date=?, supply_date=?, proform_number=?, paid=? WHERE order_id=?";
 
+    $q = "DELETE FROM `order_products` WHERE order_id=?";
     $stmt = $db->conn->stmt_init();
     $stmt->prepare($q);
-    $stmt->bind_param('ddssssdd',$res->client_id, $res->status_id, $res->confirmation_number, $res->confirmation_date, $res->supply_date, $res->proform_number, $res->paid, $res->order_id);
+    $stmt->bind_param('d',$items[0]->order_id);
     $stmt->execute();
-    echoResponse(200, $app->request->getBody());
-});
 
-//create order
-$app->post('/orders', function () use ($app) {
-    
-    //echoResponse(200, );return;
-    $res = json_decode($app->request->getBody());
-    $db = new DbHandler();
-    if (!isAuthenticated()){
-        echoResponse(403, "Not authenticated");
-        return;
+    for($i = 0; $i < count($items); ++$i) {    
+        $q = "INSERT INTO `order_products` (`index_id`, `order_id`, `product_id`, `quantity`) VALUES (?,?,?,?)";
+        $stmt = $db->conn->stmt_init();
+        $stmt->prepare($q);
+        $stmt->bind_param('dddd',$items[$i]->index_id, $items[$i]->order_id, $items[$i]->product_id, $items[$i]->quantity);
+        $stmt->execute();
+        $index_id[] = $stmt->insert_id;
     }
-    $q = "INSERT INTO orders SET client_id=?, status_id=?, confirmation_number=?, confirmation_date=?, supply_date=?, proform_number=?, paid=0";
 
-    $stmt = $db->conn->stmt_init();
-    $stmt->prepare($q);
-    $stmt->bind_param('ddssss',$res->client_id, $res->status_id, $res->confirmation_number, $res->confirmation_date, $res->supply_date, $res->proform_number);
-    $stmt->execute();
-    $response = $stmt->insert_id;
-    echoResponse(200, $response);
+    echoResponse(200, $index_id);
 });

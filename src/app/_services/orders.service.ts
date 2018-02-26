@@ -12,34 +12,31 @@ export class OrdersService {
         return this.http.get<Order[]>(environment.apiUrl + '/orders', {})
     }
 
-    getById(id: number) {
-        return this.http.get<Order>(environment.apiUrl + '/orders/' + id);
+    getTodayOrderId(){
+        return this.http.get<number>(environment.apiUrl + '/orders/today');
+    }
+
+    getByCriteria(criteria) {
+        return this.http.get<Order[]>(environment.apiUrl + '/orders/' + criteria);
+    }
+
+    getOrderProducts(order_id: number) {
+        return this.http.get<OrderItem[]>(environment.apiUrl + '/order/products/' + order_id);
     }
 
     getSummaryItemsById(order_id: number) {
         return this.http.get<OrderSummaryItem[]>(environment.apiUrl + '/order/summary/' + order_id);
     }
 
-    updateItem(order_item: OrderItem) {
-        return this.http.put(environment.apiUrl + '/order_items', order_item);
+    saveSummaryItems(items: OrderSummaryItem[]) {
+        return this.http.put(environment.apiUrl + '/order/summary/save', items);
     }
 
-    deleteItem(order_item_id: number) {
-        return this.http.delete(environment.apiUrl + '/order_items/' + order_item_id);
-    }
-    createItem(order_item: OrderItem) {
-        return this.http.post(environment.apiUrl + '/order_items', order_item);
+    saveOrderLines(orderlines: Order[]) {
+        return this.http.put(environment.apiUrl + '/orders/save', orderlines);
     }
 
-    create(order: Order) {
-        return this.http.post(environment.apiUrl + '/orders', order);
-    }
-
-    update(order: Order) {
-        return this.http.put(environment.apiUrl + '/orders', order);
-    }
-
-    delete(id: number) {
-        return this.http.delete(environment.apiUrl + '/orders/' + id);
+    saveOrderProducts(orderProducts: OrderItem[]) {
+        return this.http.put(environment.apiUrl + '/order/products/save', orderProducts);
     }
 }

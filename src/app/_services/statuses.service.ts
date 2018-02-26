@@ -1,19 +1,14 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
-
-import { Status } from '../_models/index';
+import { Observable } from 'rxjs/Observable';
 
 @Injectable()
 export class StatusesService {
 
   constructor(private http: HttpClient) { }
-  getAll() {
-    return this.http.get<Status[]>(environment.apiUrl+'/statuses', {})
-  }
-
-  getById(id: number) {
-      return this.http.get(environment.apiUrl+'/statuses/' + id);
+  getStatuses() {
+    return Observable.of<string[]>(['חדש', 'מוכן', 'נשלח']);
   }
 
   getCycles() {

@@ -1,7 +1,7 @@
 <div class="center-block">
   <div class="center-block" style="display: table">
     <h3>סיכום הזמנות</h3>
-    <ag-grid-angular dir="ltr" class="ag-theme-fresh" [ngStyle]="headerTableStyle" [columnDefs]="columnDefs" [context]="context"
+    <ag-grid-angular dir="ltr" class="headerT ag-theme-fresh" [ngStyle]="headerTableStyle" [columnDefs]="columnDefs" [context]="context"
       [gridOptions]="gridOptions" (gridReady)="onGridReady($event)" [defaultColDef]="defaultColDef"
       (cellValueChanged)="headerTableCellValueChanged($event)" [enterMovesDownAfterEdit]="true" [enableRtl]="true" [animateRows]="true">
     </ag-grid-angular>
@@ -11,10 +11,15 @@
 <div class="center-block pt-4">
   <div class="center-block" style="display: table">
     <h3>פירוט הזמנות</h3>
-    <ag-grid-angular dir="ltr" class="ag-theme-fresh mb-2" [ngStyle]="tableStyle" [columnDefs]="columnDefs2" [context]="context2"[gridOptions]="gridOptions2" (gridReady)="onGridReady2($event)" [defaultColDef]="defaultColDef2"
-    [enterMovesDownAfterEdit]="true" [enableRtl]="true" [animateRows]="true" (cellValueChanged)="tableCellValueChanged($event)">
+    <ag-grid-angular dir="ltr" class="ag-theme-fresh mb-2" [ngStyle]="tableStyle" [columnDefs]="columnDefs2" [context]="context"[gridOptions]="gridOptions2" (gridReady)="onGridReady2($event)" [defaultColDef]="defaultColDef2"
+    [enterMovesDownAfterEdit]="true" [enableRtl]="true" [animateRows]="true" 
+    
+    [enableSorting]="true"
+    [enableFilter]="true"
+
+    (cellValueChanged)="tableCellValueChanged($event)" [rowDragManaged]="true">
     </ag-grid-angular>
-    <button class="btn btn-primary mr-2"><i class="fa fa-save"></i> שמור</button>
+    <button class="btn btn-primary mr-2" (click)="saveOrder()"><i class="fa fa-save"></i> שמור</button>
     <button class="btn btn-secondary mr-2"><i class="fa fa-plus-circle"></i> הוסף שורה</button>
     <button class="btn btn-secondary mr-2"><i class="fa fa-print"></i> הדפס תעודות משלוח</button>
   </div>

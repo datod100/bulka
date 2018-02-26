@@ -60,9 +60,8 @@
 }
 
 
-.ag-cell {
-  display: flex;
-  align-items: center;
+.center-cell {
+  text-align: center;
 }
 
 .ag-theme-fresh .ag-header-cell{
@@ -74,8 +73,14 @@
   margin:auto;
 }
 
-.ag-theme-fresh .ag-rtl .ag-header-cell-label{
+/*.ag-theme-fresh .ag-rtl .ag-header-cell-label{
   width: 100%;
+}
+*/
+
+.header-bold{
+  font-weight: bold;
+  background-color: #ccccccbd;
 }
 
 app-list-grid{
@@ -163,9 +168,4 @@ p-spinner input{
   left: 0;
   right: 0;
   margin: auto;
-}
-
-.header-bold{
-  font-weight: bold;
-  background-color: #ccccccbd;
 }

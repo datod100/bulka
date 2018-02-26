@@ -1,19 +1,15 @@
 import { OrderItem } from "./index";
 import { Client } from "./client";
-import { Status } from "./status";
 
 export class Order {
+    index_id: number;
     order_id: number;
     client_id: number;
     client:Client;
     status_id: number;
-    status: Status;
-    confirmation_number : string;
-    confirmation_date : Date;
-    supply_date : Date;
-    proform_number : string;
-    paid : number;
-    items : OrderItem[];
+    group_id: number;
+    supply_time: string;
+    sort_order:number;
 }
 
 export class OrderSummaryItem{    
