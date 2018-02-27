@@ -21,7 +21,6 @@ export class AgColorSelectComponent implements ICellEditorAngularComp, AfterView
   private menu: NgbDropdown;
 
   @ViewChild('container', {read: ViewContainerRef}) public container;
-  public happy: boolean = false;
 
   constructor() {
     this.selectedGroup = new Group(1, "", "");

@@ -141,13 +141,27 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
         }
       },
       {
-        headerName: "קבוצה", field: "group.name", width: 80,
+        headerName: "קבוצה", field: "group", width: 80,
         cellStyle: function (params) {
-          if (params.data.group) {
-            return { backgroundColor: params.data.group.color };
+          if (params.value) {
+            return { backgroundColor: params.value.color };
           } else {
             return null;
           }
+        }, comparator: function (valueA, valueB, nodeA, nodeB, isInverted) {
+          const genreA = valueA.name.toUpperCase();
+          const genreB = valueB.name.toUpperCase();
+
+          let comparison = 0;
+          if (genreA > genreB) {
+            comparison = 1;
+          } else if (genreA < genreB) {
+            comparison = -1;
+          }
+          return comparison;
+        },
+        cellRenderer: params => {
+          return params.value.name;
         },
         editable: true,
         cellEditor: "agColorSelect"
@@ -188,7 +202,7 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
       this.columnDefs.push({
         headerName: this.products[k].name,
         field: "product" + this.products[k].product_id,
-        cellClass:"center-cell",
+        cellClass: "center-cell",
         editable: function (params) {
           if (params.data.disableEdit) return false
           return true;
@@ -204,9 +218,6 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
     }
     this.gridApi.setColumnDefs(this.columnDefs);
     this.calcGridWidth();
-    this.gridApi.setRowData(this.headerData);
-
-    this.headerTableCalc();
   }
 
   private buildTable() {
@@ -349,7 +360,9 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
           this.fillNewOrder();
         }
 
+        this.gridApi.setRowData(this.headerData);
         this.gridApi2.setRowData(this.tableData);
+        this.headerTableCalc();
         this.tableCalc();
       },
       err => console.error(err)
@@ -441,7 +454,7 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
       order.client_id = row.client.client_id;
       order.group_id = row.group.group_id;
       order.index_id = row.index_id;
-      order.order_id = this.order_id;      
+      order.order_id = this.order_id;
       order.sort_order = i;
       order.status_id = this.statuses.findIndex(e => e == row.status);
       order.supply_time = row.supply_time;
