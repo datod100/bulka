@@ -63,43 +63,37 @@ $app->post('/login', function () use ($app) {
 $app->post('/signUp', function () use ($app) {
     $response = array();
     $r = json_decode($app->request->getBody());
-    verifyRequiredParams(array('email', 'name', 'password'), $r->customer);
     require_once 'passwordHash.php';
     $db = new DbHandler();
-    $phone = $r->customer->phone;
-    $name = $r->customer->name;
-    $email = $r->customer->email;
-    $address = $r->customer->address;
-    $password = $r->customer->password;
-    $isUserExists = $db->getOneRecord("select 1 from customers_auth where phone='$phone' or email='$email'");
+    $password = $r->password;
+    $email = $r->username;
+    $isUserExists = $db->getOneRecord("select 1 from customers_auth where email='$email'");
     if (!$isUserExists) {
-        $r->customer->password = passwordHash::hash($password);
-        $tabble_name = "customers_auth";
-        $column_names = array('phone', 'name', 'email', 'password', 'city', 'address');
-        $result = $db->insertIntoTable($r->customer, $column_names, $tabble_name);
-        if ($result != null) {
-            $response["status"] = "success";
-            $response["message"] = "User account created successfully";
-            $response["uid"] = $result;
+        $r->password = passwordHash::hash($password);
+        
+        $q ="INSERT INTO `customers_auth`(`first_name`, `last_name`, `email`, `password`) VALUES (?,?,?,?)";
+        $stmt = $db->conn->stmt_init();
+        $stmt->prepare($q);
+        $stmt->bind_param("ssss",$r->firstName,$r->lastName,$r->username, $r->password);
+        $stmt->execute();
+        $uid = $stmt->insert_id;
+
+        if ($uid != 0) {
+            $response = "User account created successfully";
             if (!isset($_SESSION)) {
                 session_start();
             }
-            $_SESSION['uid'] = $response["uid"];
-            $_SESSION['phone'] = $phone;
-            $_SESSION['name'] = $name;
-            $_SESSION['email'] = $email;
             echoResponse(200, $response);
         } else {
-            $response["status"] = "error";
-            $response["message"] = "Failed to create customer. Please try again";
+            $response = "Failed to create customer. Please try again";
             echoResponse(201, $response);
         }
     } else {
-        $response["status"] = "error";
-        $response["message"] = "An user with the provided phone or email exists!";
+        $response = "An user with the provided phone or email exists!";
         echoResponse(201, $response);
     }
 });
+
 $app->get('/logout', function () {
     $db = new DbHandler();
     $session = $db->destroySession();
