@@ -62,11 +62,11 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
   statuses: string[] = [];
   isNew: boolean = false;
   title;
-
+  rowSelection;
   public clients: Client[] = [];
   order_id: number;
   private sub: any;
-
+  index = 0;
 
   constructor(private statusesService: StatusesService,
     private route: ActivatedRoute,
@@ -81,6 +81,7 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
 
     this.gridOptions = <GridOptions>{};
     this.gridOptions.domLayout = 'autoHeight'
+    this.rowSelection = "multiple";
 
     this.gridOptions2 = <GridOptions>{
       frameworkComponents: {
@@ -121,17 +122,19 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
 
     this.columnDefs2 = [
       {
-        headerName: "סמן", field: "select", width: 50, cellClass: "header-bold", editable: false,
-        cellRenderer: params => {
-          return `<input type='checkbox' ${params.value ? 'checked' : ''} />`;
-        },
+        headerName: "&#x2714;", width: 45, cellClass: "cell-center", editable: false, checkboxSelection: true,
+        suppressSorting: true,
+        suppressMenu: true,
         cellStyle: function (params) {
           if (params.data.cellStyle) {
             return params.data.cellStyle;
           } else {
             return null;
           }
-        }
+        },
+        cellRenderer: params => {
+          return null;
+        },
       },
       {
         headerName: "סטטוס", field: "status", width: 85, editable: true,
@@ -167,7 +170,7 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
         cellEditor: "agColorSelect"
       },
       {
-        headerName: "שם הלקוח", field: "client.name", width: 150, editable: false, rowDrag: true
+        headerName: "שם הלקוח", field: "client.name", width: 180, editable: false, rowDrag: true
       },
       {
         headerName: "איש קשר", field: "client.contact_person", width: 100, editable: false
@@ -176,7 +179,7 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
         headerName: "טלפון", field: "client.phone", width: 110, editable: false
       },
       {
-        headerName: "שעת אספקה", field: "supply_time", width: 85, cellClass: "header-bold", editable: true
+        headerName: "שעת אספקה", field: "supply_time", width: 95, cellClass: "header-bold", editable: true
       }
     ];
 
@@ -207,7 +210,7 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
           if (params.data.disableEdit) return false
           return true;
         },
-        width: (colWidth < 70) ? 70 : colWidth, cellStyle: function (params) {
+        width: (colWidth < 80) ? 80 : colWidth, cellStyle: function (params) {
           if (params.data.cellStyleRow) {
             return params.data.cellStyleRow;
           } else {
@@ -231,7 +234,7 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
           if (params.data.disableEdit) return false
           return true;
         },
-        width: (colWidth < 70) ? 70 : colWidth, cellStyle: function (params) {
+        width: (colWidth < 80) ? 80 : colWidth, cellStyle: function (params) {
           if (params.data.cellStyleRow) {
             return params.data.cellStyleRow;
           } else {
@@ -295,6 +298,28 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
     this.gridApi.setRowData(this.headerData);
   }
 
+  addItem(client:Client){
+    let row = {
+      index : this.index++,
+      status: this.statuses[0],
+      group: this.groups.find(e => client.group_id == e.group_id),
+      client: client,
+      supply_time: client.default_time1
+    }
+
+    this.tableData.push(row);
+    this.gridApi2.setRowData(this.tableData);
+  }
+
+  deleteRows(){
+    let rows = this.gridApi2.getSelectedRows();
+    for (let i = 0; i < rows.length; i++) {
+      let index = this.tableData.findIndex(e=> e.index == rows[i].index);
+      this.tableData.splice(index, 1);
+    }
+    this.gridApi2.setRowData(this.tableData);
+  }
+
   onGridReady(params) {
     this.gridApi = params.api;
 
@@ -342,7 +367,7 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
           for (let i = 0; i < this.orderLines.length; i++) {
             this.orderLines[i].client = this.clients.find(e => e.client_id == this.orderLines[i].client_id);
             let row = {
-              select: false,
+              index: this.index++,
               status: this.statuses[this.orderLines[i].status_id],
               group: this.groups.find(e => this.orderLines[i].group_id == e.group_id),
               client: this.orderLines[i].client,

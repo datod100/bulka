@@ -1,0 +1,12 @@
+<div class="center-block">
+    <div class="center-block" style="display: table">
+      <h3>זיכויים</h3>
+      <ag-grid-angular dir="ltr" class="ag-theme-fresh" [ngStyle]="tableStyle" [columnDefs]="columnDefs" [context]="context"
+        [gridOptions]="gridOptions" (gridReady)="onGridReady($event)" [defaultColDef]="defaultColDef"
+        (cellValueChanged)="tableCellValueChanged($event)" [enterMovesDownAfterEdit]="true" [enableRtl]="true" [animateRows]="true">
+      </ag-grid-angular>
+      
+      <button class="btn btn-primary mr-2 mt-3" (click)="saveOrder()"><i class="fa fa-save"></i> שמור</button>
+    </div>
+    
+  </div>

@@ -12,7 +12,7 @@ import { routing }        from './app.routing';
 import { AlertComponent } from './_directives/index';
 import { AuthGuard } from './_guards/index';
 import { JwtInterceptor } from './_helpers/index';
-import { AlertService, AuthenticationService, UserService, ClientService, OrdersService, StatusesService, GroupService, ProductService } from './_services/index';
+import { AlertService, AuthenticationService, UserService, ClientService, OrdersService, StatusesService, GroupService, ProductService,RefundsService } from './_services/index';
 import { HomeComponent } from './home/index';
 import { LoginComponent } from './login/index';
 import { RegisterComponent } from './register/index';
@@ -21,7 +21,7 @@ import { HomeLayoutComponent } from './layouts/home-layout/home-layout.component
 import { LoginLayoutComponent } from './layouts/login-layout/login-layout.component';
 import { ListComponent } from './clients/list/list.component';
 import { EditComponent } from './clients/edit/edit.component';
-import {NgbModule, NgbDateAdapter, NgbDateParserFormatter} from '@ng-bootstrap/ng-bootstrap';
+import { NgbModule, NgbDateAdapter, NgbDateParserFormatter} from '@ng-bootstrap/ng-bootstrap';
 import { ConfirmationDialogComponent } from './confirmation-dialog/confirmation-dialog.component';
 import { FloatingActionMenuModule } from 'ng2-floating-action-menu';
 import { ActionMenuComponent } from './action-menu/action-menu.component';
@@ -31,15 +31,15 @@ import { OrdersListComponent } from './orders/orders-list/orders-list.component'
 import { OrdersEditComponent } from './orders/orders-edit/orders-edit.component';
 import { ListGridComponent } from './clients/list-grid/list-grid.component';
 import { OrdersListGridComponent } from './orders/orders-list-grid/orders-list-grid.component';
-import {AutoCompleteModule} from 'primeng/autocomplete';
-import {SpinnerModule} from 'primeng/spinner';
-import {GrowlModule} from 'primeng/growl';
+import { AutoCompleteModule} from 'primeng/autocomplete';
+import { SpinnerModule} from 'primeng/spinner';
+import { GrowlModule} from 'primeng/growl';
 import { NgbDateNativeAdapter, NgbDateCustomParserFormatter } from './_providers/date-providers';
-import { WfsiteService } from './_services/wfsite.service';
 import { OrdersEditItemComponent } from './orders/orders-edit-item/orders-edit-item.component';
 import { ScrollToModule } from 'ng2-scroll-to-el';
 import { OnlyNumber } from './_directives/only-number.directive';
 import { AgColorSelectComponent } from './_helpers/ag-color-select/ag-color-select.component';
+import { RefundComponent } from './refund/refund/refund.component';
 
 @NgModule({
     imports: [
@@ -75,7 +75,8 @@ import { AgColorSelectComponent } from './_helpers/ag-color-select/ag-color-sele
         OrdersListGridComponent,
         OrdersEditItemComponent,
         OnlyNumber,
-        AgColorSelectComponent
+        AgColorSelectComponent,
+        RefundComponent
     ],
     providers: [
         AuthGuard,
@@ -84,7 +85,7 @@ import { AgColorSelectComponent } from './_helpers/ag-color-select/ag-color-sele
         ClientService,
         OrdersService,
         StatusesService,
-        WfsiteService,
+        RefundsService,
         ProductService,
         GroupService,
         UserService,

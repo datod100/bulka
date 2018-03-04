@@ -169,3 +169,18 @@ p-spinner input{
   right: 0;
   margin: auto;
 }
+
+.drop-menu{
+  left:auto !important;
+}
+
+.dropdown-toggle::after{
+  margin-right: 0.1em;
+}
+
+.basad{
+  position: absolute;
+  top: 66px;
+  left: 20px;
+  font-weight: bold;
+}

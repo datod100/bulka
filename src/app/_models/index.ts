@@ -5,3 +5,4 @@ export * from './order.item';
 export * from './group';
 export * from './product';
 export * from './price';
+export * from './refund.item';

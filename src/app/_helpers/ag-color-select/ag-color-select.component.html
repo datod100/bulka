@@ -1,6 +1,6 @@
 <div #container style="display: inline-block;" [ngStyle]="{'height':cellHeight, 'width':cellWidth}">
     <div ngbDropdown #menu="ngbDropdown" class="d-inline-block" [ngStyle]="{'height':cellHeight, 'width':cellWidth}">
-      <div id="group" class="myCell" [ngStyle]="{'background-color':selectedGroup.color, 'height':cellHeight, 'width':cellWidth}">{{selectedGroup.name}}</div>
+      <div id="group" class="myCell" [ngStyle]="{'background-color':selectedGroup.color, 'height':cellHeight, 'width':cellWidth}" ngbDropdownToggle>{{selectedGroup.name}}</div>
       <div ngbDropdownMenu aria-labelledby="dropdownBasic1">
         <button class="dropdown-item" *ngFor="let group of groups" [ngStyle]="{'background-color':group.color}" (click)="selectGroup(group)">{{group.name}}</button>
       </div>

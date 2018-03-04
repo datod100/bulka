@@ -33,6 +33,10 @@ export class AgColorSelectComponent implements ICellEditorAngularComp, AfterView
       })
   }
 
+  openMenu(){
+    this.menu.open()
+  }
+
   agInit(params: any): void {
       this.cellHeight = (+params.node.rowHeight-2)+"px";
       this.cellWidth = (+params.column.actualWidth-2)+"px";

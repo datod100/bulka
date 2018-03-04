@@ -14,13 +14,23 @@
     <ag-grid-angular dir="ltr" class="ag-theme-fresh mb-2" [ngStyle]="tableStyle" [columnDefs]="columnDefs2" [context]="context"[gridOptions]="gridOptions2" (gridReady)="onGridReady2($event)" [defaultColDef]="defaultColDef2"
     [enterMovesDownAfterEdit]="true" [enableRtl]="true" [animateRows]="true" 
     
+    [suppressRowClickSelection]="true"
+    [rowSelection]="rowSelection"
     [enableSorting]="true"
     [enableFilter]="true"
 
     (cellValueChanged)="tableCellValueChanged($event)" [rowDragManaged]="true">
     </ag-grid-angular>
     <button class="btn btn-primary mr-2" (click)="saveOrder()"><i class="fa fa-save"></i> שמור</button>
-    <button class="btn btn-secondary mr-2"><i class="fa fa-plus-circle"></i> הוסף שורה</button>
+
+    <div class="d-inline-block mr-2" ngbDropdown #myDrop="ngbDropdown">
+      <button class="btn btn-secondary" id="addItemMenu" ngbDropdownToggle><i class="fa fa-plus-circle"></i> הוסף שורה</button>
+      <div ngbDropdownMenu aria-labelledby="addItemMenu" class="drop-menu">
+        <button class="dropdown-item"  *ngFor="let client of clients" (click)="addItem(client)">{{client.name}}</button>
+      </div>    
+    </div>
+
+    <button class="btn btn-danger mr-2" (click)="deleteRows()"><i class="fa fa-trash"></i> מחק שורות מסומנות</button>
     <button class="btn btn-secondary mr-2"><i class="fa fa-print"></i> הדפס תעודות משלוח</button>
   </div>
 </div>

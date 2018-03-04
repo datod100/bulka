@@ -1,0 +1,143 @@
+<?php
+$app->get('/refunds/today', function () use ($app) {
+    $res = json_decode($app->request->getBody());
+    //echoResponse(200,$res );return;
+    $db = new DbHandler();
+    if (!isAuthenticated()){
+        echoResponse(403, "Not authenticated");
+        return;
+    }
+    $q= "INSERT INTO `refund_date` (`refund_date`)
+    SELECT date(now()) FROM DUAL WHERE NOT EXISTS (
+        SELECT `refund_date` FROM refund_date WHERE refund_date= date(now())
+    ) LIMIT 1;";
+
+    $stmt = $db->conn->stmt_init();
+    $stmt->prepare($q);
+    $stmt->execute();
+    $refund_id = $stmt->insert_id;
+
+    if ($refund_id == 0){
+        $q= "SELECT refund_id FROM refund_date WHERE refund_date= date(now())";
+        $result = $db->getOneRecord($q);
+        $refund_id = (int)$result["refund_id"];
+    }
+    
+    echoResponse(200, $refund_id);
+});
+
+
+// order all order products
+$app->get('/refunds/products/:refund_id', function ($refund_id) use ($app) {
+    $response = array();
+    $db = new DbHandler();
+    if (!isAuthenticated()){
+        echoResponse(403, "Not authenticated");
+        return;
+    }
+    $q = "SELECT * FROM refund_products WHERE refund_id=?";
+    $stmt = $db->conn->stmt_init();
+    $stmt->prepare($q);
+    $stmt->bind_param("d", $refund_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    while ($row = $result->fetch_assoc()) {
+        $row["index_id"] = (int)$row["index_id"];
+        $row["refund_id"] = (int)$row["refund_id"];
+        $row["product_id"] = (int)$row["product_id"];
+        $row["client_id"] = (int)$row["client_id"];
+        $row["quantity"] = (int)$row["quantity"];
+        $response[] = $row;
+    }
+    echoResponse(200, $response);
+});
+
+
+
+
+//get one order
+$app->get('/orders/:filter', function ($filter=null) use ($app) {
+    //echoResponse(200, var_dump($id)); return;
+    $response = array();
+    $db = new DbHandler();
+    if (!isAuthenticated()){
+        echoResponse(403, "Not authenticated");
+        return;
+    }
+    $q = "SELECT o.* FROM `order_date` od INNER JOIN `orders` o ON od.order_id = o.order_id WHERE (od.order_date = ? OR od.order_id = ?) ORDER BY o.sort_order, o.index_id";
+    $stmt = $db->conn->stmt_init();
+    $stmt->prepare($q);
+    $stmt->bind_param('ss',$filter,$filter);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    while ($row = $result->fetch_assoc()) {
+        $row["index_id"] = (int)$row["index_id"];
+        $row["sort_order"] = (int)$row["sort_order"];
+        $row["order_id"] = (int)$row["order_id"];
+        $row["client_id"] = (int)$row["client_id"];
+        $row["status_id"] = (int)$row["status_id"];
+        $row["group_id"] = (int)$row["group_id"];
+        $row['supply_time'] = substr($row['supply_time'], 0, -3);
+        $response[] = $row;
+    }
+    echoResponse(200, $response);
+});
+
+//save summary items
+$app->put('/orders/save', function () use ($app) {
+    $items = json_decode($app->request->getBody());
+    $response = array();
+    $db = new DbHandler();
+    if (!isAuthenticated()){
+        echoResponse(403, "Not authenticated");
+        return;
+    }
+
+    $q = "DELETE FROM `orders` WHERE order_id=?";
+    $stmt = $db->conn->stmt_init();
+    $stmt->prepare($q);
+    $stmt->bind_param('d',$items[0]->order_id);
+    $stmt->execute();
+
+    for($i = 0; $i < count($items); ++$i) {    
+        $q = "INSERT INTO `orders` (`sort_order`, `order_id`, `client_id`, `status_id`, `group_id`, `supply_time`) VALUES (?,?,?,?,?,?)";
+        $stmt = $db->conn->stmt_init();
+        $stmt->prepare($q);
+        $stmt->bind_param('ddddds',$items[$i]->sort_order, $items[$i]->order_id, $items[$i]->client_id, $items[$i]->status_id, $items[$i]->group_id, $items[$i]->supply_time);
+        $stmt->execute();
+        $index_id[] = $stmt->insert_id;
+    }
+
+    echoResponse(200, $index_id);
+});
+
+
+//save order products
+$app->put('/order/products/save', function () use ($app) {
+    $items = json_decode($app->request->getBody());
+    $response = array();
+    $db = new DbHandler();
+    if (!isAuthenticated()){
+        echoResponse(403, "Not authenticated");
+        return;
+    }
+
+    $q = "DELETE FROM `order_products` WHERE order_id=?";
+    $stmt = $db->conn->stmt_init();
+    $stmt->prepare($q);
+    $stmt->bind_param('d',$items[0]->order_id);
+    $stmt->execute();
+
+    for($i = 0; $i < count($items); ++$i) {    
+        $q = "INSERT INTO `order_products` (`index_id`, `order_id`, `product_id`, `quantity`) VALUES (?,?,?,?)";
+        $stmt = $db->conn->stmt_init();
+        $stmt->prepare($q);
+        $stmt->bind_param('dddd',$items[$i]->index_id, $items[$i]->order_id, $items[$i]->product_id, $items[$i]->quantity);
+        $stmt->execute();
+        $index_id[] = $stmt->insert_id;
+    }
+
+    echoResponse(200, $index_id);
+});
