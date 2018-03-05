@@ -1,12 +1,14 @@
 <div class="center-block">
     <div class="center-block" style="display: table">
-      <h3>זיכויים</h3>
-      <ag-grid-angular dir="ltr" class="ag-theme-fresh" [ngStyle]="tableStyle" [columnDefs]="columnDefs" [context]="context"
+      <h3 class="d-inline-block pr-5">זיכויים לתאריך :  </h3>
+      <p-calendar [(ngModel)]="refund.refund_date" [showIcon]="true" [maxDate]="maxDate" [ngStyle]="{direction: 'ltr'}" dateFormat="dd/mm/yy" readonlyInput="true" (onSelect)="onDateChange($event)"></p-calendar>
+      <ag-grid-angular dir="ltr" class="ag-theme-fresh pt-3" [ngStyle]="tableStyle" [columnDefs]="columnDefs" [context]="context"
         [gridOptions]="gridOptions" (gridReady)="onGridReady($event)" [defaultColDef]="defaultColDef"
         (cellValueChanged)="tableCellValueChanged($event)" [enterMovesDownAfterEdit]="true" [enableRtl]="true" [animateRows]="true">
       </ag-grid-angular>
       
-      <button class="btn btn-primary mr-2 mt-3" (click)="saveOrder()"><i class="fa fa-save"></i> שמור</button>
+      <button class="btn btn-primary mr-2 mt-3" (click)="saveOrder()" [disabled]="loading" *ngIf="isNew"><i class="fa fa-save"></i> שמור</button>
+      <img *ngIf="loading" src="data:image/gif;base64,R0lGODlhEAAQAPIAAP///wAAAMLCwkJCQgAAAGJiYoKCgpKSkiH/C05FVFNDQVBFMi4wAwEAAAAh/hpDcmVhdGVkIHdpdGggYWpheGxvYWQuaW5mbwAh+QQJCgAAACwAAAAAEAAQAAADMwi63P4wyklrE2MIOggZnAdOmGYJRbExwroUmcG2LmDEwnHQLVsYOd2mBzkYDAdKa+dIAAAh+QQJCgAAACwAAAAAEAAQAAADNAi63P5OjCEgG4QMu7DmikRxQlFUYDEZIGBMRVsaqHwctXXf7WEYB4Ag1xjihkMZsiUkKhIAIfkECQoAAAAsAAAAABAAEAAAAzYIujIjK8pByJDMlFYvBoVjHA70GU7xSUJhmKtwHPAKzLO9HMaoKwJZ7Rf8AYPDDzKpZBqfvwQAIfkECQoAAAAsAAAAABAAEAAAAzMIumIlK8oyhpHsnFZfhYumCYUhDAQxRIdhHBGqRoKw0R8DYlJd8z0fMDgsGo/IpHI5TAAAIfkECQoAAAAsAAAAABAAEAAAAzIIunInK0rnZBTwGPNMgQwmdsNgXGJUlIWEuR5oWUIpz8pAEAMe6TwfwyYsGo/IpFKSAAAh+QQJCgAAACwAAAAAEAAQAAADMwi6IMKQORfjdOe82p4wGccc4CEuQradylesojEMBgsUc2G7sDX3lQGBMLAJibufbSlKAAAh+QQJCgAAACwAAAAAEAAQAAADMgi63P7wCRHZnFVdmgHu2nFwlWCI3WGc3TSWhUFGxTAUkGCbtgENBMJAEJsxgMLWzpEAACH5BAkKAAAALAAAAAAQABAAAAMyCLrc/jDKSatlQtScKdceCAjDII7HcQ4EMTCpyrCuUBjCYRgHVtqlAiB1YhiCnlsRkAAAOwAAAAAAAAAAAA=="/>
     </div>
     
   </div>

@@ -38,6 +38,7 @@ const appRoutes: Routes = [
     },
     { 
         path: 'clients',
+        canActivate: [AuthGuard],
         component: HomeLayoutComponent,
         children: [
             {
@@ -49,6 +50,7 @@ const appRoutes: Routes = [
     ,
     { 
         path: 'clients/edit/:id',
+        canActivate: [AuthGuard],
         component: HomeLayoutComponent,
         children: [
             {
@@ -59,6 +61,7 @@ const appRoutes: Routes = [
     },
     { 
         path: 'clients/edit',
+        canActivate: [AuthGuard],
         component: HomeLayoutComponent,
         children: [
             {
@@ -69,6 +72,7 @@ const appRoutes: Routes = [
     },
     { 
         path: 'orders',
+        canActivate: [AuthGuard],
         component: HomeLayoutComponent,
         children: [
             {
@@ -79,6 +83,7 @@ const appRoutes: Routes = [
     },
     { 
         path: 'orders/edit/:id',
+        canActivate: [AuthGuard],
         component: HomeLayoutComponent,
         children: [
             {
@@ -89,6 +94,7 @@ const appRoutes: Routes = [
     },
     { 
         path: 'orders/edit/:id/:action',
+        canActivate: [AuthGuard],
         component: HomeLayoutComponent,
         children: [
             {
@@ -99,6 +105,7 @@ const appRoutes: Routes = [
     },
     { 
         path: 'orders/edit',
+        canActivate: [AuthGuard],
         component: HomeLayoutComponent,
         children: [
             {
@@ -109,6 +116,7 @@ const appRoutes: Routes = [
     },
     { 
         path: 'refund',
+        canActivate: [AuthGuard],
         component: HomeLayoutComponent,
         children: [
             {
@@ -119,6 +127,7 @@ const appRoutes: Routes = [
     },
     { 
         path: 'register',
+        canActivate: [AuthGuard],
         component: HomeLayoutComponent,
         children: [
             {

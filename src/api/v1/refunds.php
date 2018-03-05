@@ -18,14 +18,53 @@ $app->get('/refunds/today', function () use ($app) {
     $refund_id = $stmt->insert_id;
 
     if ($refund_id == 0){
-        $q= "SELECT refund_id FROM refund_date WHERE refund_date= date(now())";
+        $q= "SELECT refund_date, refund_id FROM refund_date WHERE refund_date= date(now())";
         $result = $db->getOneRecord($q);
-        $refund_id = (int)$result["refund_id"];
+        $result["refund_id"] = (int)$result["refund_id"];
     }
     
-    echoResponse(200, $refund_id);
+    echoResponse(200, $result);
 });
 
+$app->get('/refunds/:refund_id', function ($refund_id) use ($app) {
+    $res = json_decode($app->request->getBody());
+    $db = new DbHandler();
+    if (!isAuthenticated()){
+        echoResponse(403, "Not authenticated");
+        return;
+    }
+
+    if ($refund_id == 0){
+        $q= "SELECT refund_date, refund_id FROM refund_date WHERE refund_date= date(now())";
+        $result = $db->getOneRecord($q);
+        $result["refund_id"] = (int)$result["refund_id"];
+    }
+    
+    echoResponse(200, $result);
+});
+
+
+$app->get('/refunds/date/:date', function ($date) use ($app) {
+    $res = json_decode($app->request->getBody());
+    $db = new DbHandler();
+    if (!isAuthenticated()){
+        echoResponse(403, "Not authenticated");
+        return;
+    }
+    $date = substr($date,0,10);
+    $date = date('Y-m-d', strtotime($date. ' + 1 days'));
+    
+    $q= "SELECT refund_date, refund_id FROM refund_date WHERE refund_date=? LIMIT 1";     
+    $stmt = $db->conn->stmt_init();
+    $stmt->prepare($q);
+    $stmt->bind_param('s',$date);
+    $stmt->execute();        
+    $result = $stmt->get_result();
+    $row = $result->fetch_assoc();
+    $row["refund_id"] = (int)$row["refund_id"];
+    
+    echoResponse(200, $row);
+});
 
 // order all order products
 $app->get('/refunds/products/:refund_id', function ($refund_id) use ($app) {
@@ -43,7 +82,6 @@ $app->get('/refunds/products/:refund_id', function ($refund_id) use ($app) {
     $result = $stmt->get_result();
 
     while ($row = $result->fetch_assoc()) {
-        $row["index_id"] = (int)$row["index_id"];
         $row["refund_id"] = (int)$row["refund_id"];
         $row["product_id"] = (int)$row["product_id"];
         $row["client_id"] = (int)$row["client_id"];
@@ -54,39 +92,8 @@ $app->get('/refunds/products/:refund_id', function ($refund_id) use ($app) {
 });
 
 
-
-
-//get one order
-$app->get('/orders/:filter', function ($filter=null) use ($app) {
-    //echoResponse(200, var_dump($id)); return;
-    $response = array();
-    $db = new DbHandler();
-    if (!isAuthenticated()){
-        echoResponse(403, "Not authenticated");
-        return;
-    }
-    $q = "SELECT o.* FROM `order_date` od INNER JOIN `orders` o ON od.order_id = o.order_id WHERE (od.order_date = ? OR od.order_id = ?) ORDER BY o.sort_order, o.index_id";
-    $stmt = $db->conn->stmt_init();
-    $stmt->prepare($q);
-    $stmt->bind_param('ss',$filter,$filter);
-    $stmt->execute();
-    $result = $stmt->get_result();
-
-    while ($row = $result->fetch_assoc()) {
-        $row["index_id"] = (int)$row["index_id"];
-        $row["sort_order"] = (int)$row["sort_order"];
-        $row["order_id"] = (int)$row["order_id"];
-        $row["client_id"] = (int)$row["client_id"];
-        $row["status_id"] = (int)$row["status_id"];
-        $row["group_id"] = (int)$row["group_id"];
-        $row['supply_time'] = substr($row['supply_time'], 0, -3);
-        $response[] = $row;
-    }
-    echoResponse(200, $response);
-});
-
-//save summary items
-$app->put('/orders/save', function () use ($app) {
+//save refund items
+$app->put('/refunds/save', function () use ($app) {
     $items = json_decode($app->request->getBody());
     $response = array();
     $db = new DbHandler();
@@ -95,46 +102,17 @@ $app->put('/orders/save', function () use ($app) {
         return;
     }
 
-    $q = "DELETE FROM `orders` WHERE order_id=?";
+    $q = "DELETE FROM `refund_products` WHERE refund_id=?";
     $stmt = $db->conn->stmt_init();
     $stmt->prepare($q);
-    $stmt->bind_param('d',$items[0]->order_id);
+    $stmt->bind_param('d',$items[0]->refund_id);
     $stmt->execute();
 
     for($i = 0; $i < count($items); ++$i) {    
-        $q = "INSERT INTO `orders` (`sort_order`, `order_id`, `client_id`, `status_id`, `group_id`, `supply_time`) VALUES (?,?,?,?,?,?)";
+        $q = "INSERT INTO `refund_products` (`refund_id`, `client_id`, `product_id`, `quantity`) VALUES (?,?,?,?)";
         $stmt = $db->conn->stmt_init();
         $stmt->prepare($q);
-        $stmt->bind_param('ddddds',$items[$i]->sort_order, $items[$i]->order_id, $items[$i]->client_id, $items[$i]->status_id, $items[$i]->group_id, $items[$i]->supply_time);
-        $stmt->execute();
-        $index_id[] = $stmt->insert_id;
-    }
-
-    echoResponse(200, $index_id);
-});
-
-
-//save order products
-$app->put('/order/products/save', function () use ($app) {
-    $items = json_decode($app->request->getBody());
-    $response = array();
-    $db = new DbHandler();
-    if (!isAuthenticated()){
-        echoResponse(403, "Not authenticated");
-        return;
-    }
-
-    $q = "DELETE FROM `order_products` WHERE order_id=?";
-    $stmt = $db->conn->stmt_init();
-    $stmt->prepare($q);
-    $stmt->bind_param('d',$items[0]->order_id);
-    $stmt->execute();
-
-    for($i = 0; $i < count($items); ++$i) {    
-        $q = "INSERT INTO `order_products` (`index_id`, `order_id`, `product_id`, `quantity`) VALUES (?,?,?,?)";
-        $stmt = $db->conn->stmt_init();
-        $stmt->prepare($q);
-        $stmt->bind_param('dddd',$items[$i]->index_id, $items[$i]->order_id, $items[$i]->product_id, $items[$i]->quantity);
+        $stmt->bind_param('dddd',$items[$i]->refund_id, $items[$i]->client_id, $items[$i]->product_id, $items[$i]->quantity);
         $stmt->execute();
         $index_id[] = $stmt->insert_id;
     }

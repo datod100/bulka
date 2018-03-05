@@ -8,6 +8,8 @@ import { NgbModal, ModalDismissReasons } from '@ng-bootstrap/ng-bootstrap';
 import { GridApi } from 'ag-grid/dist/lib/gridApi';
 import { GridOptions, SelectCellEditor } from "ag-grid/main";
 import { AgColorSelectComponent } from '../../_helpers/ag-color-select/ag-color-select.component';
+import { isArray } from 'util';
+import { DatePipe } from '@angular/common';
 
 @Component({
   selector: 'app-refund',
@@ -27,9 +29,12 @@ export class RefundComponent implements OnInit, OnDestroy {
   rowSelection;
   public clients: Client[] = [];
   refund_id;
+  refund = { refund_id: 0, refund_date: null };
   refundLines: RefundItem[];
   sub;
   isNew = false;
+  loading = false;
+  maxDate = new Date();
 
   constructor(private statusesService: StatusesService,
     private route: ActivatedRoute,
@@ -45,6 +50,7 @@ export class RefundComponent implements OnInit, OnDestroy {
     this.gridOptions.domLayout = 'autoHeight'
     this.rowSelection = "multiple";
     this.context = { componentParent: this };
+    this.maxDate.setHours(0, 0, 0, 0);
 
     this.columnDefs = [
       {
@@ -57,7 +63,17 @@ export class RefundComponent implements OnInit, OnDestroy {
         headerName: "טלפון", field: "client.phone", width: 110, editable: false, cellClass: "header-bold"
       }
     ];
+  }
 
+  setGridEdit(state: Boolean) {
+    for (let k = 0; k < this.products.length; k++) {
+      for (let i = 0; i < this.columnDefs.length; i++) {
+        if (this.columnDefs[i].field == "product" + this.products[k].product_id) {
+          this.columnDefs[i].editable = state;
+        }
+      }
+    }
+    this.gridApi.setColumnDefs(this.columnDefs);
   }
 
   ngOnInit() {
@@ -65,8 +81,19 @@ export class RefundComponent implements OnInit, OnDestroy {
       this.refund_id = +params['id'];
       var action = params['action'];
       if (isNaN(this.refund_id)) {
-        this.refundsService.getTodayRefundId().subscribe(refund_id => this.refund_id = refund_id);
+        this.refundsService.getTodayRefundId().subscribe(data => {
+          const [y, m, d] = data.refund_date.split('-').map((val: string) => +val);
+          data.refund_date = new Date(y, m - 1, d);
+          this.refund = data;
+        }
+        );
         this.isNew = true;
+      } else {
+        this.refundsService.getRefundById(this.refund_id).subscribe(data => {
+          const [y, m, d] = data.refund_date.split('-').map((val: string) => +val);
+          data.refund_date = new Date(y, m - 1, d);
+          this.refund = data;
+        });
       }
     });
   }
@@ -180,5 +207,59 @@ export class RefundComponent implements OnInit, OnDestroy {
     this.gridApi.setRowData(this.tableData);
   }
 
+  onDateChange(newDate: Date) {
+    if (newDate.getTime() == this.maxDate.getTime()) {
+      this.isNew = true;
+    } else {
+      this.refundsService.getRefundByDate(newDate).subscribe(
+        data=>{
+          const [y, m, d] = data.refund_date.split('-').map((val: string) => +val);
+          data.refund_date = new Date(y, m - 1, d);
+          this.refund = data;
+          this.refund_id = this.refund.refund_id;
+          this.loadOrder();
+        }
+      )
+      this.isNew = false;
+    }
+    this.setGridEdit(this.isNew);
+  }
+
+  saveOrder() {
+    this.gridApi.stopEditing(false);
+
+    this.loading = true;
+
+    let items: RefundItem[] = [];
+    for (let i = 0; i < this.tableData.length; i++) {
+      for (let k = 0; k < this.products.length; k++) {
+        let quantity = this.tableData[i]["product" + this.products[k].product_id];
+        if (quantity) {
+          let itm = new RefundItem();
+          itm.client_id = this.tableData[i].client.client_id;
+          itm.product_id = this.products[k].product_id;
+          itm.quantity = +quantity;
+          itm.refund_id = this.refund_id;
+          items.push(itm);
+        }
+      }
+    }
+    this.refundsService.saveRefund(items).subscribe(
+      data => {
+        if (isArray(data)) {
+          this.alertService.success("רשומות עודכנו בהצלחה");
+        } else {
+          this.alertService.error("אירעה שגיאה בלתי צפויה");
+        }
+
+        this.loading = false;
+      },
+      err => {
+        this.alertService.error("אירעה שגיאה בלתי צפויה");
+        this.loading = false;
+      }
+    );
+
+  }
 
 }

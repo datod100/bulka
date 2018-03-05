@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
+import * as moment from 'moment';
 
 import { Order, OrderItem, OrderSummaryItem, RefundItem } from '../_models/index';
 
@@ -13,15 +14,23 @@ export class RefundsService {
     }
 
     getTodayRefundId(){
-        return this.http.get<number>(environment.apiUrl + '/refunds/today');
+        return this.http.get<any>(environment.apiUrl + '/refunds/today');
+    }
+
+    getRefundById(refund_id:number){
+        return this.http.get<any>(environment.apiUrl + '/refunds/'+refund_id);
+    }
+
+    getRefundByDate(date:Date){
+        return this.http.get<any>(environment.apiUrl + '/refunds/date/'+date.toISOString());
     }
 
     getByCriteria(criteria) {
         return this.http.get<Order[]>(environment.apiUrl + '/refunds/' + criteria);
     }
 
-    saveRefund(orderlines: Order[]) {
-        return this.http.put(environment.apiUrl + '/orders/save', orderlines);
+    saveRefund(refundItems: RefundItem[]) {
+        return this.http.put<number[]>(environment.apiUrl + '/refunds/save', refundItems);
     }
 
 }

@@ -33,6 +33,7 @@
     "font-awesome": "^4.7.0",
     "jquery": "^3.3.1",
     "material-design-icons": "^3.0.1",
+    "moment": "^2.21.0",
     "ng2-floating-action-menu": "^2.1.0",
     "ng2-scroll-to-el": "^1.2.1",
     "popper.js": "^1.12.9",

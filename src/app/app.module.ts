@@ -40,6 +40,9 @@ import { ScrollToModule } from 'ng2-scroll-to-el';
 import { OnlyNumber } from './_directives/only-number.directive';
 import { AgColorSelectComponent } from './_helpers/ag-color-select/ag-color-select.component';
 import { RefundComponent } from './refund/refund/refund.component';
+import { CalendarModule } from 'primeng/calendar';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+
 
 @NgModule({
     imports: [
@@ -52,7 +55,10 @@ import { RefundComponent } from './refund/refund/refund.component';
         FloatingActionMenuModule,
         AutoCompleteModule,
         SpinnerModule,
+        CalendarModule,
         GrowlModule,
+        CalendarModule,
+        BrowserAnimationsModule,        
         AgGridModule.withComponents([ListGridComponent, OrdersListGridComponent, AgColorSelectComponent]),
     ],
     declarations: [
