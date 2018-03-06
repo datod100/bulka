@@ -82,20 +82,24 @@ export class RefundComponent implements OnInit, OnDestroy {
       var action = params['action'];
       if (isNaN(this.refund_id)) {
         this.refundsService.getTodayRefundId().subscribe(data => {
-          const [y, m, d] = data.refund_date.split('-').map((val: string) => +val);
-          data.refund_date = new Date(y, m - 1, d);
+          data.refund_date = this.formatDate(data.refund_date);
           this.refund = data;
+          this.refund_id = data.refund_id;
         }
         );
         this.isNew = true;
       } else {
         this.refundsService.getRefundById(this.refund_id).subscribe(data => {
-          const [y, m, d] = data.refund_date.split('-').map((val: string) => +val);
-          data.refund_date = new Date(y, m - 1, d);
+          data.refund_date = this.formatDate(data.refund_date);
           this.refund = data;
         });
       }
     });
+  }
+
+  formatDate(unfDate) {
+    const [y, m, d] = unfDate.split('-').map((val: string) => +val);
+    return new Date(y, m - 1, d);
   }
 
   ngOnDestroy() {
@@ -208,21 +212,43 @@ export class RefundComponent implements OnInit, OnDestroy {
   }
 
   onDateChange(newDate: Date) {
+    this.clearTable();
+    this.isNew = false;
     if (newDate.getTime() == this.maxDate.getTime()) {
       this.isNew = true;
-    } else {
-      this.refundsService.getRefundByDate(newDate).subscribe(
-        data=>{
+    }
+    this.refundsService.getRefundByDate(newDate).subscribe(
+      data => {
+        if (data.refund_date) {
           const [y, m, d] = data.refund_date.split('-').map((val: string) => +val);
           data.refund_date = new Date(y, m - 1, d);
           this.refund = data;
           this.refund_id = this.refund.refund_id;
           this.loadOrder();
         }
-      )
-      this.isNew = false;
-    }
+      }
+    );
     this.setGridEdit(this.isNew);
+  }
+
+  copyToToday() {
+    this.refundsService.getTodayRefundId().subscribe(data => {
+      data.refund_date = this.formatDate(data.refund_date);
+      this.refund = data;
+      this.refund_id = data.refund_id;
+      this.isNew = true;
+      this.saveOrder();
+    });
+  }
+
+  clearTable() {
+    this.gridApi.stopEditing(false);
+    for (let i = 0; i < this.tableData.length; i++) {
+      for (let k = 0; k < this.products.length; k++) {
+        this.tableData[i]["product" + this.products[k].product_id] = "";
+      }
+    }
+    this.gridApi.setRowData(this.tableData);
   }
 
   saveOrder() {
@@ -244,7 +270,7 @@ export class RefundComponent implements OnInit, OnDestroy {
         }
       }
     }
-    this.refundsService.saveRefund(items).subscribe(
+    this.refundsService.saveRefund(items, this.refund_id).subscribe(
       data => {
         if (isArray(data)) {
           this.alertService.success("רשומות עודכנו בהצלחה");

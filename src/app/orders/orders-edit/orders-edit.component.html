@@ -1,7 +1,10 @@
 <div class="center-block">
   <div class="center-block" style="display: table">
-    <h3>סיכום הזמנות</h3>
-    <ag-grid-angular dir="ltr" class="headerT ag-theme-fresh" [ngStyle]="headerTableStyle" [columnDefs]="columnDefs" [context]="context"
+      <h3 class="d-inline-block pr-5">סיכום הזמנות לתאריך :  </h3>
+      <p-calendar [(ngModel)]="orderDate" showButtonBar="true" [showIcon]="true" [maxDate]="maxDate" [ngStyle]="{direction: 'ltr'}" dateFormat="dd/mm/yy" readonlyInput="true" (onSelect)="onDateChange($event)"></p-calendar>
+      <h3 class="d-inline-block pl-2" *ngIf="isNew">- היום</h3>
+
+    <ag-grid-angular dir="ltr" class="headerT ag-theme-fresh pt-3" [ngStyle]="headerTableStyle" [columnDefs]="columnDefs" [context]="context"
       [gridOptions]="gridOptions" (gridReady)="onGridReady($event)" [defaultColDef]="defaultColDef"
       (cellValueChanged)="headerTableCellValueChanged($event)" [enterMovesDownAfterEdit]="true" [enableRtl]="true" [animateRows]="true">
     </ag-grid-angular>
@@ -21,16 +24,17 @@
 
     (cellValueChanged)="tableCellValueChanged($event)" [rowDragManaged]="true">
     </ag-grid-angular>
-    <button class="btn btn-primary mr-2" (click)="saveOrder()"><i class="fa fa-save"></i> שמור</button>
+    <button class="btn btn-primary mr-2" (click)="saveOrder()" [disabled]="loading" *ngIf="isNew"><i class="fa fa-save"></i> שמור</button>
 
-    <div class="d-inline-block mr-2" ngbDropdown #myDrop="ngbDropdown">
-      <button class="btn btn-secondary" id="addItemMenu" ngbDropdownToggle><i class="fa fa-plus-circle"></i> הוסף שורה</button>
+    <div class="d-inline-block mr-2" ngbDropdown #myDrop="ngbDropdown" *ngIf="isNew">
+      <button class="btn btn-secondary" id="addItemMenu" ngbDropdownToggle [disabled]="loading"><i class="fa fa-plus-circle"></i> הוסף שורה</button>
       <div ngbDropdownMenu aria-labelledby="addItemMenu" class="drop-menu">
         <button class="dropdown-item"  *ngFor="let client of clients" (click)="addItem(client)">{{client.name}}</button>
       </div>    
     </div>
 
-    <button class="btn btn-danger mr-2" (click)="deleteRows()"><i class="fa fa-trash"></i> מחק שורות מסומנות</button>
-    <button class="btn btn-secondary mr-2"><i class="fa fa-print"></i> הדפס תעודות משלוח</button>
+    <button class="btn btn-danger mr-2" (click)="deleteRows()" [disabled]="loading" *ngIf="isNew"><i class="fa fa-trash"></i> מחק שורות מסומנות</button>
+    <button class="btn btn-secondary mr-2" [disabled]="loading" *ngIf="isNew"><i class="fa fa-print"></i> הדפס תעודות משלוח</button>
+    <button class="btn btn-primary mr-2" (click)="clearTable()" [disabled]="loading" *ngIf="isNew"><i class="fa fa-save"></i> נקה טבלה</button>
   </div>
 </div>

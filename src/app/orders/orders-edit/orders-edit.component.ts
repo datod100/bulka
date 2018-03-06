@@ -65,8 +65,11 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
   rowSelection;
   public clients: Client[] = [];
   order_id: number;
+  orderDate: Date;
   private sub: any;
   index = 0;
+  loading = false;
+  maxDate = new Date();
 
   constructor(private statusesService: StatusesService,
     private route: ActivatedRoute,
@@ -82,6 +85,7 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
     this.gridOptions = <GridOptions>{};
     this.gridOptions.domLayout = 'autoHeight'
     this.rowSelection = "multiple";
+    this.maxDate.setHours(0, 0, 0, 0);
 
     this.gridOptions2 = <GridOptions>{
       frameworkComponents: {
@@ -186,7 +190,68 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
   }
 
 
+  formatDate(unfDate) {
+    const [y, m, d] = unfDate.split('-').map((val: string) => +val);
+    return new Date(y, m - 1, d);
+  }
+
+  onDateChange(newDate: Date) {
+    this.clearTable();
+    this.isNew = false;
+    if (newDate.getTime() == this.maxDate.getTime()) {
+      this.isNew = true;
+    }
+    this.ordersService.getOrderByDate(newDate).subscribe(
+      data => {
+        if (data.order_date) {
+          const [y, m, d] = data.order_date.split('-').map((val: string) => +val);
+          this.orderDate = new Date(y, m - 1, d);
+          this.order_id = data.order_id;
+          this.loadOrder();
+        }else{
+          this.headerTableCalc();
+          this.tableCalc();
+        }        
+      }
+    );
+    this.setGridEdit(this.isNew);
+  }
+
+  setGridEdit(state: Boolean) {
+    for (let k = 0; k < this.products.length; k++) {
+      for (let i = 0; i < this.columnDefs.length; i++) {
+        if (this.columnDefs[i].field == "product" + this.products[k].product_id) {
+          this.columnDefs[i].editable = state;
+        }
+      }
+    }
+    this.gridApi.setColumnDefs(this.columnDefs);
+  }
+
+  clearTable() {
+    this.gridApi.stopEditing(false);
+    for (let i = 0; i < this.headerData.length; i++) {
+      for (let k = 0; k < this.products.length; k++) {
+        this.headerData[i]["product" + this.products[k].product_id] = "";
+      }
+    }
+    this.gridApi.setRowData(this.headerData);
+
+    this.gridApi2.stopEditing(false);
+    this.tableData=[];
+    this.fillNewOrder();
+    /*
+    for (let i = 0; i < this.tableData.length; i++) {
+      for (let k = 0; k < this.products.length; k++) {
+        this.tableData[i]["product" + this.products[k].product_id] = "";
+      }
+    }
+    this.gridApi2.setRowData(this.tableData);
+    */
+  }
+  
   private buildHeaderTable() {
+    this.headerData=[];
     for (let i = 0; i < this.cycles.length; i++) {
       this.headerData.push({ cycle: this.cycles[i].name, ready_time: this.cycles[i].cycle_time, cellStyleRow: { backgroundColor: '#ffc1074a', userSelect: 'text' } });
     }
@@ -207,12 +272,16 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
         field: "product" + this.products[k].product_id,
         cellClass: "center-cell",
         editable: function (params) {
-          if (params.data.disableEdit) return false
+          if (params.data.disableEdit) return false;
           return true;
         },
         width: (colWidth < 80) ? 80 : colWidth, cellStyle: function (params) {
           if (params.data.cellStyleRow) {
-            return params.data.cellStyleRow;
+            let styles = params.data.cellStyleRow;
+            if (params.data.disableEdit){
+              styles.direction = 'ltr';
+            }
+            return styles;
           } else {
             return null;
           }
@@ -298,9 +367,9 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
     this.gridApi.setRowData(this.headerData);
   }
 
-  addItem(client:Client){
+  addItem(client: Client) {
     let row = {
-      index : this.index++,
+      index: this.index++,
       status: this.statuses[0],
       group: this.groups.find(e => client.group_id == e.group_id),
       client: client,
@@ -311,10 +380,10 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
     this.gridApi2.setRowData(this.tableData);
   }
 
-  deleteRows(){
+  deleteRows() {
     let rows = this.gridApi2.getSelectedRows();
     for (let i = 0; i < rows.length; i++) {
-      let index = this.tableData.findIndex(e=> e.index == rows[i].index);
+      let index = this.tableData.findIndex(e => e.index == rows[i].index);
       this.tableData.splice(index, 1);
     }
     this.gridApi2.setRowData(this.tableData);
@@ -327,7 +396,6 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
       this.statusesService.getCycles(),
       this.productService.getAll(),
       this.groupService.getAll(),
-      this.ordersService.getSummaryItemsById(this.order_id),
       this.clientService.getAll(),
       this.statusesService.getStatuses()
     ).subscribe(
@@ -335,9 +403,8 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
         this.cycles = data[0];
         this.products = data[1];
         this.groups = data[2];
-        this.summaryItems = data[3];
-        this.clients = data[4];
-        this.statuses = data[5];
+        this.clients = data[3];
+        this.statuses = data[4];
 
         this.buildHeaderTable();
         this.buildTable();
@@ -355,13 +422,18 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
   }
 
   loadOrder() {
+    this.tableData =[];
+    this.headerData =[];
     Observable.forkJoin(
       this.ordersService.getByCriteria(this.order_id),
-      this.ordersService.getOrderProducts(this.order_id)
+      this.ordersService.getOrderProducts(this.order_id),
+      this.ordersService.getSummaryItemsById(this.order_id)
     ).subscribe(
       data => {
         this.orderLines = data[0];
         this.orderProducts = data[1];
+        this.summaryItems = data[2];
+        this.buildHeaderTable();
 
         if (this.orderLines.length > 0) {
           for (let i = 0; i < this.orderLines.length; i++) {
@@ -396,6 +468,7 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
   }
 
   fillNewOrder() {
+    this.tableData = [];
     for (let i = 0; i < this.clients.length; i++) {
       this.tableData.push({ select: false, status: 'חדש', group: this.groups.find(e => this.clients[i].group_id == e.group_id), client: this.clients[i], supply_time: this.clients[i].default_time1 });
       if (this.clients[i].default_time2) {
@@ -437,8 +510,17 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
       this.order_id = +params['id'];
       var action = params['action'];
       if (isNaN(this.order_id)) {
-        this.ordersService.getTodayOrderId().subscribe(order_id => this.order_id = order_id);
+        this.ordersService.getTodayOrderId().subscribe(data => {
+          this.orderDate = this.formatDate(data.order_date);
+          this.order_id = data.order_id;
+        }
+        );
         this.isNew = true;
+      } else {
+        this.ordersService.getOrderById(this.order_id).subscribe(data => {
+          this.orderDate = this.formatDate(data.order_date);
+          this.order_id = data.order_id;
+        });
       }
     });
   }

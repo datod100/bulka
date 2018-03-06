@@ -29,8 +29,8 @@ export class RefundsService {
         return this.http.get<Order[]>(environment.apiUrl + '/refunds/' + criteria);
     }
 
-    saveRefund(refundItems: RefundItem[]) {
-        return this.http.put<number[]>(environment.apiUrl + '/refunds/save', refundItems);
+    saveRefund(refundItems: RefundItem[], refund_id) {
+        return this.http.put<number[]>(environment.apiUrl + '/refunds/save/'+refund_id, refundItems);
     }
 
 }

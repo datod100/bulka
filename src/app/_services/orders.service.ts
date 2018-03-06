@@ -13,7 +13,16 @@ export class OrdersService {
     }
 
     getTodayOrderId(){
-        return this.http.get<number>(environment.apiUrl + '/orders/today');
+        return this.http.get<any>(environment.apiUrl + '/orders/today');
+    }
+
+
+    getOrderById(order_id:number){
+        return this.http.get<any>(environment.apiUrl + '/orders/id/'+order_id);
+    }
+
+    getOrderByDate(date:Date){
+        return this.http.get<any>(environment.apiUrl + '/orders/date/'+date.toISOString());
     }
 
     getByCriteria(criteria) {

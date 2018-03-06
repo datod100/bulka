@@ -7,7 +7,7 @@ import { Observable } from 'rxjs/Observable';
 @Injectable()
 export class GroupService {
     private groups: Group[] = [];
-    private colors: string[] = ["#C0C0C0",  "#FF0000",  "#FFFF00",  "#00FF00",  "#00FFFF",  "#0000FF", "#FF00FF", "#0074D9"];
+    private colors: string[] = ["#C0C0C0",  "#FF0000",  "#FFFF00",  "#00FF00",  "#00FFFF",  "#e49114", "#FF00FF", "#0074D9"];
 
     constructor() {
         for (let i: number = 0; i < 8; i++) {

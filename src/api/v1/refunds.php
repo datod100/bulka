@@ -93,7 +93,7 @@ $app->get('/refunds/products/:refund_id', function ($refund_id) use ($app) {
 
 
 //save refund items
-$app->put('/refunds/save', function () use ($app) {
+$app->put('/refunds/save/:refund_id', function ($refund_id) use ($app) {
     $items = json_decode($app->request->getBody());
     $response = array();
     $db = new DbHandler();
@@ -105,8 +105,10 @@ $app->put('/refunds/save', function () use ($app) {
     $q = "DELETE FROM `refund_products` WHERE refund_id=?";
     $stmt = $db->conn->stmt_init();
     $stmt->prepare($q);
-    $stmt->bind_param('d',$items[0]->refund_id);
+    $stmt->bind_param('d',$refund_id);
     $stmt->execute();
+
+    $index_id=[];
 
     for($i = 0; $i < count($items); ++$i) {    
         $q = "INSERT INTO `refund_products` (`refund_id`, `client_id`, `product_id`, `quantity`) VALUES (?,?,?,?)";

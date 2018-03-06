@@ -1,6 +1,6 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <a class="navbar-brand" href="#">
-        <i class="fa fa-briefcase"></i> שפע ברכה - מערכת ניהול הזמנות</a>
+    <span class="navbar-brand" href="#">
+        <i class="fa fa-briefcase"></i> שפע ברכה - מערכת ניהול הזמנות</span>
     <button class="navbar-toggler collapsed" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse"
         aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
@@ -11,10 +11,14 @@
                 <a class="nav-link" data-toggle="collapse" [routerLink]="['/dashboard']" routerLinkActive="active"><i class="fa fa-home"></i> בית
                 </a>
             </li>
-            <!-- <li class="nav-item">
-                <a class="nav-link" data-toggle="collapse" [routerLink]="['/orders']" routerLinkActive="active">
+            <li class="nav-item">
+                <a class="nav-link" data-toggle="collapse" [routerLink]="['/orders/edit']" routerLinkActive="active">
                     <i class="fa fa-cubes"></i> הזמנות</a>
-            </li> -->
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-toggle="collapse" [routerLink]="['/refund']" routerLinkActive="active">
+                    <i class="fa fa-usd"></i> זיכויים</a>
+            </li>
             <li class="nav-item">
                 <a class="nav-link" data-toggle="collapse" [routerLink]="['/clients']" routerLinkActive="active">
                     <i class="fa fa-user"></i> לקוחות</a>

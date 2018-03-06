@@ -98,14 +98,54 @@ $app->get('/orders/today', function () use ($app) {
     $order_id = $stmt->insert_id;
 
     if ($order_id == 0){
-        $q= "SELECT order_id FROM order_date WHERE order_date= date(now())";
+        $q= "SELECT order_date, order_id FROM order_date WHERE order_date= date(now())";
         $result = $db->getOneRecord($q);
-        $order_id = (int)$result["order_id"];
+        $result["order_id"] = (int)$result["order_id"];
     }
     
-    echoResponse(200, $order_id);
+    echoResponse(200, $result);
 });
 
+
+$app->get('/orders/id/:order_id', function ($order_id) use ($app) {
+    $res = json_decode($app->request->getBody());
+    $db = new DbHandler();
+    if (!isAuthenticated()){
+        echoResponse(403, "Not authenticated");
+        return;
+    }
+
+    if ($order_id == 0){
+        $q= "SELECT order_date, order_id FROM order_date WHERE order_date= date(now())";
+        $result = $db->getOneRecord($q);
+        $result["order_id"] = (int)$result["order_id"];
+    }
+    
+    echoResponse(200, $result);
+});
+
+
+$app->get('/orders/date/:date', function ($date) use ($app) {
+    $res = json_decode($app->request->getBody());
+    $db = new DbHandler();
+    if (!isAuthenticated()){
+        echoResponse(403, "Not authenticated");
+        return;
+    }
+    $date = substr($date,0,10);
+    $date = date('Y-m-d', strtotime($date. ' + 1 days'));
+    
+    $q= "SELECT order_date, order_id FROM order_date WHERE order_date=? LIMIT 1";     
+    $stmt = $db->conn->stmt_init();
+    $stmt->prepare($q);
+    $stmt->bind_param('s',$date);
+    $stmt->execute();        
+    $result = $stmt->get_result();
+    $row = $result->fetch_assoc();
+    $row["order_id"] = (int)$row["order_id"];
+    
+    echoResponse(200, $row);
+});
 
 //get one order
 $app->get('/orders/:filter', function ($filter=null) use ($app) {
