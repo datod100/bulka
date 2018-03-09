@@ -22,6 +22,8 @@ require_once 'clients.php';
 require_once 'orders.php';
 require_once 'tables.php';
 require_once 'refunds.php';
+require_once 'reports.php';
+require_once 'docs.php';
 
 /**
  * Verifying required params posted or not

@@ -7,3 +7,4 @@ export * from './statuses.service';
 export * from './refunds.service';
 export * from './groups.service';
 export * from './products.service';
+export * from './reports.service';

@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
-import * as moment from 'moment';
 
 import { Order, OrderItem, OrderSummaryItem, RefundItem } from '../_models/index';
 
