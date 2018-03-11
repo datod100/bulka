@@ -335,6 +335,8 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
     params.context.componentParent.tableCalc();
   }
 
+  
+
   tableCalc() {
     let rowOffset = this.cycles.length + 1;
 
@@ -343,7 +345,10 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
       for (let i = 0; i < this.tableData.length; i++) {
         if (this.tableData[i].status == "נשלח") {
           let quantity = +this.tableData[i]["product" + this.products[k].product_id];
+          this.tableData[i].disableEdit = true;
           if (!isNaN(quantity)) colSum += quantity;
+        }else{
+          this.tableData[i].disableEdit = false;
         }
       }
       this.headerData[rowOffset]["product" + this.products[k].product_id] = colSum;

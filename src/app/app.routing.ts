@@ -12,6 +12,7 @@ import { LoginLayoutComponent } from './layouts/login-layout/login-layout.compon
 import { OrdersEditComponent } from './orders/orders-edit/orders-edit.component';
 import { EditComponent } from './clients/edit/edit.component';
 import { RefundComponent } from './refund/refund/refund.component';
+import { BalanceReportComponent } from './reports/balance/balance.component';
 
 const appRoutes: Routes = [
     { 
@@ -122,6 +123,17 @@ const appRoutes: Routes = [
             {
                 path : '',
                 component: RefundComponent
+            }
+        ]
+    },
+    { 
+        path: 'reports/balance',
+        canActivate: [AuthGuard],
+        component: HomeLayoutComponent,
+        children: [
+            {
+                path : '',
+                component: BalanceReportComponent
             }
         ]
     },

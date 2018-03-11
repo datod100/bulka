@@ -42,6 +42,7 @@ import { AgColorSelectComponent } from './_helpers/ag-color-select/ag-color-sele
 import { RefundComponent } from './refund/refund/refund.component';
 import { CalendarModule } from 'primeng/calendar';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { BalanceReportComponent } from './reports/balance/balance.component';
 
 
 @NgModule({
@@ -82,7 +83,8 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
         OrdersEditItemComponent,
         OnlyNumber,
         AgColorSelectComponent,
-        RefundComponent
+        RefundComponent,
+        BalanceReportComponent
     ],
     providers: [
         AuthGuard,
