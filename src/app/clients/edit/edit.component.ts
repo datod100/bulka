@@ -54,7 +54,7 @@ export class EditComponent implements OnInit, OnDestroy {
   }
 
   timeToNgbTimeStruct(time) {
-    if (time==null || !time) return null;
+    if (time == null || !time) return null;
     let tTime = new Date("1968-11-16T" + time);
     return { hour: tTime.getHours(), minute: tTime.getMinutes(), second: 0 };
   }
@@ -71,7 +71,7 @@ export class EditComponent implements OnInit, OnDestroy {
     this.client.default_time3 = this.NgbTimeStructToTime(this.default_time3);
     this.client.travel_duration = this.NgbTimeStructToTime(this.travel_duration);
 
-    this.client.prices.forEach(p=>p.price = +p.price);
+    this.client.prices.forEach(p => p.price = +p.price);
 
     if (this.client_id) {
       this.clientService.update(this.client).subscribe(data => { });
@@ -140,11 +140,10 @@ export class EditComponent implements OnInit, OnDestroy {
             this.client = data[0][0];
             let prices: Price[] = data[1];
             this.client.prices = [];
-            this.products.forEach(product => {
-              let price = prices.find(p => p.product_id == product.product_id);
-
-              this.client.prices.push(new Price(product, (price) ? price.price : null));
-            });
+            for (let i = 0; i < this.products.length; i++) {
+              let price = prices.find(p => p.product_id == this.products[i].product_id);
+              this.client.prices.push(new Price(this.products[i], (price) ? price.price : null));
+            };
 
             this.selectedGroup = this.groups.find(group => group.group_id == this.client.group_id);
             this.travel_duration = this.timeToNgbTimeStruct(this.client.travel_duration);

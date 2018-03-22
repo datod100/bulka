@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy, NgModule } from '@angular/core';
-import { Order, Client, OrderItem, Group, OrderSummaryItem, RefundItem } from '../../_models/index';
+import { Order, Client, OrderItem, Group, OrderSummaryItem, RefundItem, Price } from '../../_models/index';
 import { ClientService, AlertService, ProductService, ReportsService } from '../../_services/index';
 import { ActivatedRoute, Router } from '@angular/router';
 import { error } from 'selenium-webdriver';
@@ -65,14 +65,14 @@ export class BalanceReportComponent implements OnInit {
     this.gridOptions.getRowHeight = function (params) {
       if (params.data.delimiter) {
         return 5;
-      }else{
+      } else {
         return 25;
       }
     }
 
     this.columnDefs = [
       {
-        headerName: "", field: "type", width: 80, editable: false, cellStyle: (params) => {
+        headerName: "", field: "type", width: 85, editable: false, cellStyle: (params) => {
           if (!params.data.delimiter) {
             return Object.assign({ backgroundColor: '#ccccccbd' }, params.data.cellStyle);
           }
@@ -121,16 +121,32 @@ export class BalanceReportComponent implements OnInit {
         this.products = data[0];
         this.clients = data[1];
 
-        this.buildTable();
+        let clients_count = 0;
+        for (let i = 0; i < this.clients.length; i++) {
+          this.clientService.getPricesByClientId(this.clients[i].client_id).subscribe(
+            prices => {
+              clients_count++;
+              this.clients[i].prices = [];
+              for (let k = 0; k < this.products.length; k++) {
+                let price = prices.find(p => p.product_id == this.products[k].product_id);
+                this.clients[i].prices.push(new Price(this.products[k], (price) ? price.price : null));
+              };
+              if (clients_count == this.clients.length) {
+                this.buildTable();
+                this.loadData();
+              }
+            }
+          )
+        }
 
-        this.loadData();
+
       }
     );
   }
 
-  private loadData(){
+  private loadData() {
     this.clearTable();
-    this.loading=true;
+    this.loading = true;
     Observable.forkJoin(
       this.reportsService.getBalanceReport(this.start_date, this.end_date)
     ).subscribe(
@@ -140,9 +156,9 @@ export class BalanceReportComponent implements OnInit {
 
         for (let k = 0; k < orders.length; k++) {
           for (let i = 0; i < this.tableData.length; i++) {
-            if (this.tableData[i].client && this.tableData[i].client.client_id == orders[k].client_id){
-              if (this.tableData[i].type == 'נשלח'){
-                this.tableData[i]['product'+orders[k].product_id] = orders[k].total_quantity
+            if (this.tableData[i].client && this.tableData[i].client.client_id == orders[k].client_id) {
+              if (this.tableData[i].type == 'נשלח') {
+                this.tableData[i]['product' + orders[k].product_id] = orders[k].total_quantity
               }
             }
           }
@@ -150,9 +166,9 @@ export class BalanceReportComponent implements OnInit {
 
         for (let k = 0; k < refunds.length; k++) {
           for (let i = 0; i < this.tableData.length; i++) {
-            if (this.tableData[i].client && this.tableData[i].client.client_id == refunds[k].client_id){
-              if (this.tableData[i].type == 'זיכוי'){
-                this.tableData[i]['product'+refunds[k].product_id] = refunds[k].total_quantity
+            if (this.tableData[i].client && this.tableData[i].client.client_id == refunds[k].client_id) {
+              if (this.tableData[i].type == 'זיכוי') {
+                this.tableData[i]['product' + refunds[k].product_id] = refunds[k].total_quantity
               }
             }
           }
@@ -162,31 +178,61 @@ export class BalanceReportComponent implements OnInit {
 
         this.gridApi.setRowData(this.tableData);
         this.alertService.success('טבלה עודכנה');
-        this.loading=false;
+        this.loading = false;
       },
-      err =>{
+      err => {
         console.error(err);
-        this.loading=true;
+        this.loading = true;
       }
     );
-  }  
+  }
 
   private buildTable() {
     for (let k = 0; k < this.products.length; k++) {
-      let colWidth = this.products[k].name.length * 9;
+      let colWidth = this.products[k].width + 12;
 
       this.columnDefs.push({
         headerName: this.products[k].name,
+        headerClass: "header-cell",
         field: "product" + this.products[k].product_id,
-        cellStyle : (params) => {return params.data.cellStyle},
+        cellStyle: (params) => { return params.data.cellStyle },
+        valueFormatter: (params) => {
+          if (params.value) {
+            if (params.data.formatter) {
+              return params.value + params.data.formatter;
+            }
+          }
+          return params.value;
+        },
         width: (colWidth < 80) ? 80 : colWidth
       });
     }
+    this.columnDefs.push({
+      headerName: 'סה"כ',
+      field : 'sum',
+      headerClass: "header-cell",
+      cellStyle: (params) => {
+        if (!params.data.delimiter) {
+          return Object.assign({ backgroundColor: '#ccccccbd' }, params.data.cellStyle);
+        }
+      },
+      valueFormatter: (params) => {
+        if (params.value) {
+          if (params.data.formatter) {
+            return params.value + params.data.formatter;
+          }
+        }
+        return params.value;
+      },
+      width: 120
+
+    });
 
     for (let i = 0; i < this.clients.length; i++) {
       this.tableData.push({ type: 'נשלח', client: this.clients[i] });
       this.tableData.push({ type: 'זיכוי', client: this.clients[i] });
       this.tableData.push({ type: 'סה"כ', cellStyle: { fontWeight: 'bold', direction: 'ltr' } });
+      this.tableData.push({ type: 'סה"כ ש"ח', cellStyle: { fontWeight: 'bold', direction: 'ltr' }, formatter: " ₪" });
       this.tableData.push({ delimiter: true });
     }
 
@@ -209,29 +255,38 @@ export class BalanceReportComponent implements OnInit {
     this.gridApi.doLayout();
   }
 
-  
+
   onDateChange(newDate: Date) {
-    if (this.end_date<this.start_date){
+    if (this.end_date < this.start_date) {
       this.alertService.error('תאריך סיום צריך להיות גדול יותר מהתחלה');
     }
   }
 
 
   calcTable() {
-    for (let k = 0; k < this.products.length; k++) {
-      for (let i = 0; i < this.tableData.length; i=i+4) {
-        let prop = 'product'+this.products[k].product_id;
+
+    for (let i = 0; i < this.tableData.length; i = i + 5) {
+      let sum = 0;
+      for (let k = 0; k < this.products.length; k++) {
+        let prop = 'product' + this.products[k].product_id;
         let order = 0;
         let refund = 0;
-        if (prop in this.tableData[i]){
+        if (prop in this.tableData[i]) {
           order = this.tableData[i][prop];
         }
-        if (prop in this.tableData[i+1]){
-          refund = this.tableData[i+1][prop];
+        if (prop in this.tableData[i + 1]) {
+          refund = this.tableData[i + 1][prop];
         }
-        
-        this.tableData[i+2]['product'+this.products[k].product_id] = order-refund;
+
+        let price = this.tableData[i].client.prices.find(p => p.product.product_id == this.products[k].product_id);
+        if (price != null && price.price != null) {
+          this.tableData[i + 2]['product' + this.products[k].product_id] = order - refund;
+          let colSum = (order - refund) * +price.price;
+          this.tableData[i + 3]['product' + this.products[k].product_id] = colSum;
+          sum += colSum;
+        }
       }
+      this.tableData[i + 3]['sum'] = sum;
     }
   }
 

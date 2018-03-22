@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy, NgModule } from '@angular/core';
-import { Order, Client, OrderItem, Group, OrderSummaryItem, RefundItem } from '../../_models/index';
+import { Order, Client, OrderItem, Group, OrderSummaryItem, RefundItem, Price } from '../../_models/index';
 import { StatusesService, ClientService, OrdersService, AlertService, ProductService, GroupService, RefundsService } from '../../_services/index';
 import { ActivatedRoute, Router } from '@angular/router';
 import { error } from 'selenium-webdriver';
@@ -17,6 +17,7 @@ import { DatePipe } from '@angular/common';
   styleUrls: ['./refund.component.css']
 })
 export class RefundComponent implements OnInit, OnDestroy {
+
   gridOptions: GridOptions;
   columnDefs: any[];
   groups: Group[];
@@ -121,13 +122,31 @@ export class RefundComponent implements OnInit, OnDestroy {
         this.clients = data[2];
         this.statuses = data[3];
 
-        this.buildTable();
 
-        if (!isNaN(this.refund_id)) {
-          this.loadOrder();
-        } else {
-          //this.fillNewOrder();
+        let clients_counter = 0;
+        for (let i = 0; i < this.clients.length; i++) {
+          this.clientService.getPricesByClientId(this.clients[i].client_id).subscribe(
+            prices => {
+              this.clients[i].prices = [];
+              for (let k = 0; k < this.products.length; k++) {
+                let price = prices.find(p => p.product_id == this.products[k].product_id);
+                this.clients[i].prices.push(new Price(this.products[k], (price) ? price.price : null));
+              }
+              clients_counter++;
+              if (clients_counter == this.clients.length) {
+                this.buildTable();
+
+                if (!isNaN(this.refund_id)) {
+                  this.loadOrder();
+                } else {
+                  //this.fillNewOrder();
+                }
+              }
+            }
+          )
         }
+
+
       }
     );
 
@@ -159,21 +178,28 @@ export class RefundComponent implements OnInit, OnDestroy {
 
   private buildTable() {
     for (let k = 0; k < this.products.length; k++) {
-      let colWidth = this.products[k].name.length * 9;
+      let colWidth = this.products[k].width + 12;
 
       this.columnDefs.push({
         headerName: this.products[k].name,
+        headerClass: "header-cell",
         field: "product" + this.products[k].product_id,
         editable: function (params) {
           if (params.data.disableEdit) return false
+          let price = params.data.client.prices.find(p => p.product.name == params.colDef.headerName);
+          if (price.price == null) return false;
           return true;
         },
         width: (colWidth < 80) ? 80 : colWidth, cellStyle: function (params) {
+          let style = { backgroundColor: "" };
           if (params.data.cellStyleRow) {
-            return params.data.cellStyleRow;
-          } else {
-            return null;
+            style += Object.assign(style, params.data.cellStyleRow);
           }
+          let price = params.data.client.prices.find(p => p.product.name == params.colDef.headerName);
+          if (params.data.disableEdit || price.price == null) {
+            style.backgroundColor = "#d9d9d9";
+          }
+          return style;
         }
       });
     }

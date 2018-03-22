@@ -123,7 +123,7 @@
               {{price.product.name}}
               </div>
             </div>
-            <input type="text" class="form-control" [(ngModel)]="price.price" id="price{{price.product.product_id}}" name="price{{price.product.product_id}}">
+            <input type="text" class="form-control center" placeholder="לא פעיל" OnlyNumber="true" [(ngModel)]="price.price" id="price{{price.product.product_id}}" name="price{{price.product.product_id}}">
             <div class="input-group-append">
               <span class="input-group-text">₪</span>
             </div>

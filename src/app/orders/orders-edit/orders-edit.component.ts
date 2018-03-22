@@ -8,6 +8,7 @@ import { NgbModal, ModalDismissReasons } from '@ng-bootstrap/ng-bootstrap';
 import { GridApi } from 'ag-grid/dist/lib/gridApi';
 import { GridOptions, SelectCellEditor } from "ag-grid/main";
 import { AgColorSelectComponent } from '../../_helpers/ag-color-select/ag-color-select.component';
+import { Price } from '../../_models/price';
 
 
 function checkKey(event) {
@@ -70,6 +71,7 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
   index = 0;
   loading = false;
   maxDate = new Date();
+  headerBuilt = false;
 
   constructor(private statusesService: StatusesService,
     private route: ActivatedRoute,
@@ -82,7 +84,8 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
     private clientService: ClientService) {
 
 
-    this.gridOptions = <GridOptions>{};
+    this.gridOptions = <GridOptions>{
+    };
     this.gridOptions.domLayout = 'autoHeight'
     this.rowSelection = "multiple";
     this.maxDate.setHours(0, 0, 0, 0);
@@ -97,7 +100,7 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
 
     this.columnDefs = [
       {
-        headerName: "סיבוב", field: "cycle", width: 120, cellClass: "header-bold", editable: false,
+        headerName: "סיבוב", field: "cycle", width: 95, cellClass: "header-bold", headerClass: "header-cell", editable: false,
         colSpan: function (params) {
           if (params.data.colSpan) {
             return params.data.colSpan;
@@ -114,7 +117,7 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
         }
       },
       {
-        headerName: "מוכן בשעה", field: "ready_time", width: 85, cellClass: "header-bold", editable: false,
+        headerName: "מוכן בשעה", field: "ready_time", width: 65, cellClass: "header-bold", headerClass: "header-cell", editable: false,
         cellRenderer: function (params) {
           if (params.value) {
             let time = params.value;
@@ -208,10 +211,10 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
           this.orderDate = new Date(y, m - 1, d);
           this.order_id = data.order_id;
           this.loadOrder();
-        }else{
+        } else {
           this.headerTableCalc();
           this.tableCalc();
-        }        
+        }
       }
     );
     this.setGridEdit(this.isNew);
@@ -238,7 +241,7 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
     this.gridApi.setRowData(this.headerData);
 
     this.gridApi2.stopEditing(false);
-    this.tableData=[];
+    this.tableData = [];
     this.fillNewOrder();
     /*
     for (let i = 0; i < this.tableData.length; i++) {
@@ -249,9 +252,9 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
     this.gridApi2.setRowData(this.tableData);
     */
   }
-  
+
   private buildHeaderTable() {
-    this.headerData=[];
+    this.headerData = [];
     for (let i = 0; i < this.cycles.length; i++) {
       this.headerData.push({ cycle: this.cycles[i].name, ready_time: this.cycles[i].cycle_time, cellStyleRow: { backgroundColor: '#ffc1074a', userSelect: 'text' } });
     }
@@ -260,55 +263,69 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
     this.headerData.push({ cycle: "יתרת סחורה במאפייה", colSpan: 2, disableEdit: true, cellStyle: { left: 'auto' }, cellStyleRow: { backgroundColor: '#ccccccbd', userSelect: 'text' } });
 
     for (let k = 0; k < this.products.length; k++) {
-      let colWidth = this.products[k].name.length * 9;
+      let colWidth = this.products[k].width + 12;
 
       for (let i = 0; i < this.cycles.length; i++) {
         let value = this.summaryItems.find(e => e.cycle_id == this.cycles[i].cycle_id && e.product_id == this.products[k].product_id);
         this.headerData[i]["product" + this.products[k].product_id] = (value != null) ? value.quantity : '';
       }
 
-      this.columnDefs.push({
-        headerName: this.products[k].name,
-        field: "product" + this.products[k].product_id,
-        cellClass: "center-cell",
-        editable: function (params) {
-          if (params.data.disableEdit) return false;
-          return true;
-        },
-        width: (colWidth < 80) ? 80 : colWidth, cellStyle: function (params) {
-          if (params.data.cellStyleRow) {
-            let styles = params.data.cellStyleRow;
-            if (params.data.disableEdit){
-              styles.direction = 'ltr';
+      if (!this.headerBuilt) {
+        this.columnDefs.push({
+          headerName: this.products[k].name,
+          field: "product" + this.products[k].product_id,
+          cellClass: "center-cell",
+          headerClass: "header-cell",
+          editable: function (params) {
+            if (params.data.disableEdit) return false;
+            return true;
+          },
+          width: colWidth, cellStyle: function (params) {
+            if (params.data.cellStyleRow) {
+              let styles = params.data.cellStyleRow;
+              if (params.data.disableEdit) {
+                styles.direction = 'ltr';
+              }
+              return styles;
+            } else {
+              return null;
             }
-            return styles;
-          } else {
-            return null;
           }
-        }
-      });
+        });
+
+        this.gridApi.setColumnDefs(this.columnDefs);
+      }
     }
-    this.gridApi.setColumnDefs(this.columnDefs);
     this.calcGridWidth();
+    this.headerBuilt = true;
   }
 
   private buildTable() {
     for (let k = 0; k < this.products.length; k++) {
-      let colWidth = this.products[k].name.length * 9;
+      let colWidth = this.products[k].width + 6;
 
       this.columnDefs2.push({
         headerName: this.products[k].name,
         field: "product" + this.products[k].product_id,
         editable: function (params) {
           if (params.data.disableEdit) return false
+          let price = params.data.client.prices.find(p => p.product.name == params.colDef.headerName);
+          if (price.price == null) return false;
           return true;
         },
-        width: (colWidth < 80) ? 80 : colWidth, cellStyle: function (params) {
+        suppressSorting: true,
+        suppressFilter: true,
+        headerClass: "header-cell",
+        width: colWidth, cellStyle: function (params) {
+          let style = { backgroundColor: "" };
           if (params.data.cellStyleRow) {
-            return params.data.cellStyleRow;
-          } else {
-            return null;
+            style += Object.assign(style, params.data.cellStyleRow);
           }
+          let price = params.data.client.prices.find(p => p.product.name == params.colDef.headerName);
+          if (params.data.disableEdit || price.price == null) {
+            style.backgroundColor = "#d9d9d9";
+          }
+          return style;
         }
       });
     }
@@ -335,8 +352,6 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
     params.context.componentParent.tableCalc();
   }
 
-  
-
   tableCalc() {
     let rowOffset = this.cycles.length + 1;
 
@@ -347,7 +362,7 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
           let quantity = +this.tableData[i]["product" + this.products[k].product_id];
           this.tableData[i].disableEdit = true;
           if (!isNaN(quantity)) colSum += quantity;
-        }else{
+        } else {
           this.tableData[i].disableEdit = false;
         }
       }
@@ -411,14 +426,31 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
         this.clients = data[3];
         this.statuses = data[4];
 
-        this.buildHeaderTable();
-        this.buildTable();
+        let clients_counter = 0;
+        for (let i = 0; i < this.clients.length; i++) {
+          this.clientService.getPricesByClientId(this.clients[i].client_id).subscribe(
+            prices => {
+              this.clients[i].prices = [];
+              for (let k = 0; k < this.products.length; k++) {
+                let price = prices.find(p => p.product_id == this.products[k].product_id);
+                this.clients[i].prices.push(new Price(this.products[k], (price) ? price.price : null));
+              };
+              clients_counter++;
+              if (clients_counter == this.clients.length) {
+                this.buildTable();
 
-        if (!isNaN(this.order_id)) {
-          this.loadOrder();
-        } else {
-          this.fillNewOrder();
+                if (!isNaN(this.order_id)) {
+                  this.loadOrder();
+                } else {
+                  this.buildHeaderTable();
+                  this.fillNewOrder();
+                }
+              }
+            }
+          )
         }
+
+
       }
     );
 
@@ -427,8 +459,8 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
   }
 
   loadOrder() {
-    this.tableData =[];
-    this.headerData =[];
+    this.tableData = [];
+    this.headerData = [];
     Observable.forkJoin(
       this.ordersService.getByCriteria(this.order_id),
       this.ordersService.getOrderProducts(this.order_id),
@@ -490,7 +522,7 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
     this.gridApi2 = params.api;
   }
 
-  private calcGridWidth() {
+  calcGridWidth() {
     let screenWidth = window.outerWidth;
 
     let newWidth = 0;
