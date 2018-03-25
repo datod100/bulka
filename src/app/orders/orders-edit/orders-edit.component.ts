@@ -9,6 +9,7 @@ import { GridApi } from 'ag-grid/dist/lib/gridApi';
 import { GridOptions, SelectCellEditor } from "ag-grid/main";
 import { AgColorSelectComponent } from '../../_helpers/ag-color-select/ag-color-select.component';
 import { Price } from '../../_models/price';
+import * as moment from 'moment';
 import { ConfirmationService } from 'primeng/api';
 
 
@@ -85,6 +86,7 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
     private confirmationService: ConfirmationService,
     private clientService: ClientService) {
 
+    moment.locale('en-il');
 
     this.gridOptions = <GridOptions>{
     };
@@ -194,12 +196,6 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
 
   }
 
-
-  formatDate(unfDate) {
-    const [y, m, d] = unfDate.split('-').map((val: string) => +val);
-    return new Date(y, m - 1, d);
-  }
-
   onDateChange(newDate: Date) {
     this.clearTable();
     this.isNew = false;
@@ -209,8 +205,7 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
     this.ordersService.getOrderByDate(newDate).subscribe(
       data => {
         if (data.order_date) {
-          const [y, m, d] = data.order_date.split('-').map((val: string) => +val);
-          this.orderDate = new Date(y, m - 1, d);
+          this.orderDate = moment(data.order_date).toDate();
           this.order_id = data.order_id;
           this.loadOrder();
         } else {
@@ -234,33 +229,28 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
   }
 
   clearTable() {
+    this.gridApi.stopEditing(false);
+    for (let i = 0; i < this.headerData.length; i++) {
+      for (let k = 0; k < this.products.length; k++) {
+        this.headerData[i]["product" + this.products[k].product_id] = "";
+      }
+    }
+    this.gridApi.setRowData(this.headerData);
+
+    this.gridApi2.stopEditing(false);
+    this.tableData = [];
+    this.fillNewOrder();
+  }
+
+  clearTableConfirm() {
     this.confirmationService.confirm({
       message: 'האם אתה בטוח שברצונך לנקות טבלה?',
       header: 'אישור',
       icon: 'fa fa-question-circle',
       accept: () => {
-        this.gridApi.stopEditing(false);
-        for (let i = 0; i < this.headerData.length; i++) {
-          for (let k = 0; k < this.products.length; k++) {
-            this.headerData[i]["product" + this.products[k].product_id] = "";
-          }
-        }
-        this.gridApi.setRowData(this.headerData);
-
-        this.gridApi2.stopEditing(false);
-        this.tableData = [];
-        this.fillNewOrder();
+        this.clearTable();
       }
     });
-
-    /*
-    for (let i = 0; i < this.tableData.length; i++) {
-      for (let k = 0; k < this.products.length; k++) {
-        this.tableData[i]["product" + this.products[k].product_id] = "";
-      }
-    }
-    this.gridApi2.setRowData(this.tableData);
-    */
   }
 
   private buildHeaderTable() {
@@ -326,6 +316,7 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
         suppressSorting: true,
         suppressFilter: true,
         headerClass: "header-cell",
+        cellClass: "center-cell",
         width: colWidth, cellStyle: function (params) {
           let style = { backgroundColor: "" };
           if (params.data.cellStyleRow) {
@@ -566,14 +557,14 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
       var action = params['action'];
       if (isNaN(this.order_id)) {
         this.ordersService.getTodayOrderId().subscribe(data => {
-          this.orderDate = this.formatDate(data.order_date);
+          this.orderDate = moment(data.order_date).toDate();
           this.order_id = data.order_id;
         }
         );
         this.isNew = true;
       } else {
         this.ordersService.getOrderById(this.order_id).subscribe(data => {
-          this.orderDate = this.formatDate(data.order_date);
+          this.orderDate = moment(data.order_date).toDate();
           this.order_id = data.order_id;
         });
       }

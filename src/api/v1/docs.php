@@ -14,7 +14,7 @@ class Pdf extends Fpdi\TcpdfFpdi
         function Header()
         {
             if (is_null($this->tplId)) {                
-                $this->setSourceFile('pdf/packinglist.pdf');
+                $this->setSourceFile('pdf/packinglist-dual.pdf');
                 $this->tplId = $this->importPage(1);
             }
             $size = $this->useImportedPage($this->tplId);
@@ -30,14 +30,14 @@ $app->get('/docs/packinglist/:order_id', function ($order_id) use ($app) {
     //echoResponse(200, var_dump($id)); return;
     $response = array();
     $db = new DbHandler();
+    $x_offset = 150;
         
     // initiate PDF
     $pdf = new Pdf();
-    $pdf->SetMargins(PDF_MARGIN_LEFT, 40, PDF_MARGIN_RIGHT);
-    $pdf->SetAutoPageBreak(true, 40);
+    $pdf->SetMargins(0, 0, 0);
     
     // add a page
-    $pdf->AddPage();
+    $pdf->AddPage("L", "A4");
     
     
     $pdf->setRTL(true);
@@ -58,30 +58,34 @@ $app->get('/docs/packinglist/:order_id', function ($order_id) use ($app) {
     }
 
     //echoResponse(200, var_dump($products)); return;
-    $pdf->SetFont('freeserifb', '', 20);
-    // now write some text above the imported page
-    $pdf->SetXY(70, 63.5);
+    $pdf->SetFont('freeserifb', '', 16);
+    $pdf->SetXY(46, 44.5);
+    $pdf->Write(5, $pl_number);
+    $pdf->SetXY(46 + $x_offset, 44.5);
     $pdf->Write(5, $pl_number);
     
-    $pdf->SetFontSize(17);
-    $pdf->SetXY(140, 46.5);
-    $pdf->Write(5, 'מקור');
-
-
     // date
-    $pdf->SetFont('freeserif', '', 16);
-    $pdf->SetXY(150, 65);
+    $pdf->SetFont('freeserif', '', 13);
+    $pdf->SetXY(106, 45.5);
+    $pdf->Write(5, $date);
+    $pdf->SetXY(106 + $x_offset, 45.5);
     $pdf->Write(5, $date);
 
     //client
-    $pdf->SetXY(37, 80);
+    $pdf->SetXY(24, 53);
+    $pdf->Write(5, $client);
+    $pdf->SetXY(24 + $x_offset, 53);
     $pdf->Write(5, $client);
 
     for ($i=0;$i<count($products);$i++){
-        $pdf->SetXY(20, 107.5+$i*9.1);
-        $pdf->Write(5, $products[$i]['name']);
+        $pdf->SetXY(12, 74.5+$i*8.2);
+        $pdf->Write(5, $products[$i]['name']);        
+        $pdf->SetX(81.5);
+        $pdf->Write(5, $i);
         
-        $pdf->SetX(116);
+        $pdf->SetX(12 + $x_offset);
+        $pdf->Write(5, $products[$i]['name']);
+        $pdf->SetX(81.5 + $x_offset);
         $pdf->Write(5, $i);
     }
 
