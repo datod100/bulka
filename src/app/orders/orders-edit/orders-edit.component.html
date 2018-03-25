@@ -1,18 +1,17 @@
 <div class="center-block">
   <div class="center-block" style="display: table">
+    <div class="center">
       <h3 class="d-inline-block pr-5">סיכום הזמנות לתאריך :  </h3>
       <p-calendar [(ngModel)]="orderDate" showButtonBar="true" [showIcon]="true" [maxDate]="maxDate" [ngStyle]="{direction: 'ltr'}" dateFormat="dd/mm/yy" readonlyInput="true" (onSelect)="onDateChange($event)"></p-calendar>
       <h3 class="d-inline-block pl-2" *ngIf="isNew">- היום</h3>
-
-    <ag-grid-angular dir="ltr" class="headerT ag-theme-fresh pt-3" [ngStyle]="headerTableStyle" [columnDefs]="columnDefs" [context]="context"
+    </div>
+    <div class="text-left">
+    <ag-grid-angular style="margin-right: auto;" dir="ltr" class="headerT ag-theme-fresh pt-3" [ngStyle]="headerTableStyle" [columnDefs]="columnDefs" [context]="context"
       [gridOptions]="gridOptions" (gridReady)="onGridReady($event)" [defaultColDef]="defaultColDef"
       (cellValueChanged)="headerTableCellValueChanged($event)" [enterMovesDownAfterEdit]="true" [enableRtl]="true" [animateRows]="true">
     </ag-grid-angular>
-  </div>
-</div>
+    </div>
 
-<div class="center-block pt-4">
-  <div class="center-block" style="display: table">
     <h3>פירוט הזמנות</h3>
     <ag-grid-angular dir="ltr" class="ag-theme-fresh mb-2" [ngStyle]="tableStyle" [columnDefs]="columnDefs2" [context]="context"[gridOptions]="gridOptions2" (gridReady)="onGridReady2($event)" [defaultColDef]="defaultColDef2"
     [enterMovesDownAfterEdit]="true" [enableRtl]="true" [animateRows]="true" 
@@ -38,3 +37,10 @@
     <button class="btn btn-primary mr-2" (click)="clearTable()" [disabled]="loading" *ngIf="isNew"><i class="fa fa-save"></i> נקה טבלה</button>
   </div>
 </div>
+
+<p-confirmDialog #cd>
+    <p-footer>
+        <button type="button" pButton icon="fa-check" label="כן" (click)="cd.accept()"></button>
+        <button type="button" pButton icon="fa-close" label="לא" (click)="cd.reject()"></button>
+    </p-footer>
+</p-confirmDialog>

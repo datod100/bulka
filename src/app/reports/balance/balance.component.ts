@@ -11,6 +11,10 @@ import { AgColorSelectComponent } from '../../_helpers/ag-color-select/ag-color-
 import { isArray } from 'util';
 import { DatePipe } from '@angular/common';
 
+function precisionRound(number, precision) {
+  var factor = Math.pow(10, precision);
+  return Math.round(number * factor) / factor;
+}
 
 @Component({
   selector: 'app-balance',
@@ -189,17 +193,18 @@ export class BalanceReportComponent implements OnInit {
 
   private buildTable() {
     for (let k = 0; k < this.products.length; k++) {
-      let colWidth = this.products[k].width + 12;
+      let colWidth = this.products[k].width;
 
       this.columnDefs.push({
         headerName: this.products[k].name,
         headerClass: "header-cell",
         field: "product" + this.products[k].product_id,
         cellStyle: (params) => { return params.data.cellStyle },
+        cellClass:"center",
         valueFormatter: (params) => {
           if (params.value) {
             if (params.data.formatter) {
-              return params.value + params.data.formatter;
+              return precisionRound(params.value,2) + params.data.formatter;
             }
           }
           return params.value;
@@ -216,15 +221,16 @@ export class BalanceReportComponent implements OnInit {
           return Object.assign({ backgroundColor: '#ccccccbd' }, params.data.cellStyle);
         }
       },
+      cellClass:"center",
       valueFormatter: (params) => {
         if (params.value) {
           if (params.data.formatter) {
-            return params.value + params.data.formatter;
+            return precisionRound(params.value,2) + params.data.formatter;
           }
         }
         return params.value;
       },
-      width: 120
+      width: 100
 
     });
 

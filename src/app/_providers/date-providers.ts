@@ -1,17 +1,18 @@
 import { Injectable } from '@angular/core';
 import { NgbDateAdapter, NgbDateStruct, NgbDateParserFormatter } from '@ng-bootstrap/ng-bootstrap';
 import { toInteger, padNumber, isNumber } from '@ng-bootstrap/ng-bootstrap/util/util';
+import * as moment from 'moment';
 
 @Injectable()
 export class NgbDateNativeAdapter extends NgbDateAdapter<Date> {
   fromModel(date: Date): NgbDateStruct {
-    return (date && date.getFullYear) ? {year: date.getFullYear(), month: date.getMonth(), day: date.getDate()} : null;
+    return (date && date.getFullYear) ? {year: date.getFullYear(), month: date.getMonth()+1, day: date.getDate()} : null;
   }
 
   toModel(date: NgbDateStruct): Date {
     if (date){
       var dt = new Date();
-      dt.setUTCFullYear(date.year, date.month, date.day);
+      dt.setUTCFullYear(date.year, date.month-1, date.day);
       return dt;
     }else{
       return null;
@@ -21,18 +22,19 @@ export class NgbDateNativeAdapter extends NgbDateAdapter<Date> {
 
 @Injectable()
 export class NgbDateCustomParserFormatter extends NgbDateParserFormatter {
+  constructor(){
+    super();
+    moment.locale('en-il');
+  }
+
   parse(value: string): NgbDateStruct {
-    if (value) {
-      const dateParts = value.trim().split('-');
-      if (dateParts.length === 1 && isNumber(dateParts[0])) {
-        return {day: toInteger(dateParts[0]), month: null, year: null};
-      } else if (dateParts.length === 2 && isNumber(dateParts[0]) && isNumber(dateParts[1])) {
-        return {day: toInteger(dateParts[0]), month: toInteger(dateParts[1]), year: null};
-      } else if (dateParts.length === 3 && isNumber(dateParts[0]) && isNumber(dateParts[1]) && isNumber(dateParts[2])) {
-        return {day: toInteger(dateParts[0]), month: toInteger(dateParts[1]), year: toInteger(dateParts[2])};
-      }
+    var date = moment(value,"DD/MM/YYYY");
+    if (date.isValid()){
+      let newdate = {day: date.date(), month: date.month()+1, year: date.year()};
+      return newdate;
+    }else{
+      return null;
     }
-    return null;
   }
 
   format(date: NgbDateStruct): string {

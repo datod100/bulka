@@ -9,7 +9,8 @@ import { GridApi } from 'ag-grid/dist/lib/gridApi';
 import { GridOptions, SelectCellEditor } from "ag-grid/main";
 import { AgColorSelectComponent } from '../../_helpers/ag-color-select/ag-color-select.component';
 import { isArray } from 'util';
-import { DatePipe } from '@angular/common';
+import * as moment from 'moment';
+import { ConfirmationService } from 'primeng/api';
 
 @Component({
   selector: 'app-refund',
@@ -36,6 +37,7 @@ export class RefundComponent implements OnInit, OnDestroy {
   isNew = false;
   loading = false;
   maxDate = new Date();
+  selectedDate: Date;
 
   constructor(private statusesService: StatusesService,
     private route: ActivatedRoute,
@@ -44,6 +46,7 @@ export class RefundComponent implements OnInit, OnDestroy {
     private refundsService: RefundsService,
     private productService: ProductService,
     private alertService: AlertService,
+    private confirmationService: ConfirmationService,
     private groupService: GroupService,
     private clientService: ClientService) {
 
@@ -52,6 +55,7 @@ export class RefundComponent implements OnInit, OnDestroy {
     this.rowSelection = "multiple";
     this.context = { componentParent: this };
     this.maxDate.setHours(0, 0, 0, 0);
+    moment.locale('en-il');
 
     this.columnDefs = [
       {
@@ -83,24 +87,21 @@ export class RefundComponent implements OnInit, OnDestroy {
       var action = params['action'];
       if (isNaN(this.refund_id)) {
         this.refundsService.getTodayRefundId().subscribe(data => {
-          data.refund_date = this.formatDate(data.refund_date);
+          data.refund_date = moment(data.refund_date).toDate();
           this.refund = data;
           this.refund_id = data.refund_id;
+          this.selectedDate = data.refund_date;
         }
         );
         this.isNew = true;
       } else {
         this.refundsService.getRefundById(this.refund_id).subscribe(data => {
-          data.refund_date = this.formatDate(data.refund_date);
+          data.refund_date = moment(data.refund_date).toDate();
+          this.selectedDate = data.refund_date;
           this.refund = data;
         });
       }
     });
-  }
-
-  formatDate(unfDate) {
-    const [y, m, d] = unfDate.split('-').map((val: string) => +val);
-    return new Date(y, m - 1, d);
   }
 
   ngOnDestroy() {
@@ -183,6 +184,7 @@ export class RefundComponent implements OnInit, OnDestroy {
       this.columnDefs.push({
         headerName: this.products[k].name,
         headerClass: "header-cell",
+        cellClass: "center",
         field: "product" + this.products[k].product_id,
         editable: function (params) {
           if (params.data.disableEdit) return false
@@ -214,7 +216,6 @@ export class RefundComponent implements OnInit, OnDestroy {
 
   }
 
-
   private calcGridWidth() {
     let screenWidth = window.outerWidth;
 
@@ -240,26 +241,28 @@ export class RefundComponent implements OnInit, OnDestroy {
   onDateChange(newDate: Date) {
     this.clearTable();
     this.isNew = false;
+    this.selectedDate = newDate;
     if (newDate.getTime() == this.maxDate.getTime()) {
       this.isNew = true;
     }
     this.refundsService.getRefundByDate(newDate).subscribe(
       data => {
         if (data.refund_date) {
-          const [y, m, d] = data.refund_date.split('-').map((val: string) => +val);
-          data.refund_date = new Date(y, m - 1, d);
+          data.refund_date = moment(data.refund_date).toDate();
           this.refund = data;
           this.refund_id = this.refund.refund_id;
           this.loadOrder();
+        } else {
+          this.refund_id = 0;
         }
       }
     );
-    this.setGridEdit(this.isNew);
+    //this.setGridEdit(this.isNew);
   }
 
   copyToToday() {
     this.refundsService.getTodayRefundId().subscribe(data => {
-      data.refund_date = this.formatDate(data.refund_date);
+      data.refund_date = moment(data.refund_date).toDate();
       this.refund = data;
       this.refund_id = data.refund_id;
       this.isNew = true;
@@ -268,18 +271,23 @@ export class RefundComponent implements OnInit, OnDestroy {
   }
 
   clearTable() {
-    this.gridApi.stopEditing(false);
-    for (let i = 0; i < this.tableData.length; i++) {
-      for (let k = 0; k < this.products.length; k++) {
-        this.tableData[i]["product" + this.products[k].product_id] = "";
+    this.confirmationService.confirm({
+      message: 'האם אתה בטוח שברצונך לנקות טבלה?',
+      header: 'אישור',
+      icon: 'fa fa-question-circle',
+      accept: () => {
+        this.gridApi.stopEditing(false);
+        for (let i = 0; i < this.tableData.length; i++) {
+          for (let k = 0; k < this.products.length; k++) {
+            this.tableData[i]["product" + this.products[k].product_id] = "";
+          }
+        }
+        this.gridApi.setRowData(this.tableData);
       }
-    }
-    this.gridApi.setRowData(this.tableData);
+    });
   }
 
-  saveOrder() {
-    this.gridApi.stopEditing(false);
-
+  saveOrderAction() {
     this.loading = true;
 
     let items: RefundItem[] = [];
@@ -311,6 +319,23 @@ export class RefundComponent implements OnInit, OnDestroy {
         this.loading = false;
       }
     );
+  }
+
+  saveOrder() {
+    this.gridApi.stopEditing(false);
+
+    if (this.refund_id == 0) {
+      this.refundsService.getRefundIdByDate(this.selectedDate).subscribe(data => {
+        data.refund_date = moment(data.refund_date).toDate();
+        this.refund = data;
+        this.refund_id = data.refund_id;
+
+        this.saveOrderAction();
+      });
+    } else {
+      this.saveOrderAction();
+    }
+
 
   }
 

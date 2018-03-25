@@ -9,6 +9,7 @@ import { GridApi } from 'ag-grid/dist/lib/gridApi';
 import { GridOptions, SelectCellEditor } from "ag-grid/main";
 import { AgColorSelectComponent } from '../../_helpers/ag-color-select/ag-color-select.component';
 import { Price } from '../../_models/price';
+import { ConfirmationService } from 'primeng/api';
 
 
 function checkKey(event) {
@@ -81,6 +82,7 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
     private productService: ProductService,
     private alertService: AlertService,
     private groupService: GroupService,
+    private confirmationService: ConfirmationService,
     private clientService: ClientService) {
 
 
@@ -232,17 +234,25 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
   }
 
   clearTable() {
-    this.gridApi.stopEditing(false);
-    for (let i = 0; i < this.headerData.length; i++) {
-      for (let k = 0; k < this.products.length; k++) {
-        this.headerData[i]["product" + this.products[k].product_id] = "";
-      }
-    }
-    this.gridApi.setRowData(this.headerData);
+    this.confirmationService.confirm({
+      message: 'האם אתה בטוח שברצונך לנקות טבלה?',
+      header: 'אישור',
+      icon: 'fa fa-question-circle',
+      accept: () => {
+        this.gridApi.stopEditing(false);
+        for (let i = 0; i < this.headerData.length; i++) {
+          for (let k = 0; k < this.products.length; k++) {
+            this.headerData[i]["product" + this.products[k].product_id] = "";
+          }
+        }
+        this.gridApi.setRowData(this.headerData);
 
-    this.gridApi2.stopEditing(false);
-    this.tableData = [];
-    this.fillNewOrder();
+        this.gridApi2.stopEditing(false);
+        this.tableData = [];
+        this.fillNewOrder();
+      }
+    });
+
     /*
     for (let i = 0; i < this.tableData.length; i++) {
       for (let k = 0; k < this.products.length; k++) {
@@ -263,7 +273,7 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
     this.headerData.push({ cycle: "יתרת סחורה במאפייה", colSpan: 2, disableEdit: true, cellStyle: { left: 'auto' }, cellStyleRow: { backgroundColor: '#ccccccbd', userSelect: 'text' } });
 
     for (let k = 0; k < this.products.length; k++) {
-      let colWidth = this.products[k].width + 12;
+      let colWidth = this.products[k].width + 6;
 
       for (let i = 0; i < this.cycles.length; i++) {
         let value = this.summaryItems.find(e => e.cycle_id == this.cycles[i].cycle_id && e.product_id == this.products[k].product_id);
@@ -401,12 +411,20 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
   }
 
   deleteRows() {
-    let rows = this.gridApi2.getSelectedRows();
-    for (let i = 0; i < rows.length; i++) {
-      let index = this.tableData.findIndex(e => e.index == rows[i].index);
-      this.tableData.splice(index, 1);
-    }
-    this.gridApi2.setRowData(this.tableData);
+    this.confirmationService.confirm({
+      message: 'האם אתה בטוח שברצונך למחוק שורות?',
+      header: 'אישור מחיקה',
+      icon: 'fa fa-question-circle',
+      accept: () => {
+        let rows = this.gridApi2.getSelectedRows();
+        for (let i = 0; i < rows.length; i++) {
+          let index = this.tableData.findIndex(e => e.index == rows[i].index);
+          this.tableData.splice(index, 1);
+        }
+        this.gridApi2.setRowData(this.tableData);
+      }
+    });
+
   }
 
   onGridReady(params) {

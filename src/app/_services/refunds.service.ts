@@ -1,19 +1,27 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
+import * as moment from 'moment';
 
 import { Order, OrderItem, OrderSummaryItem, RefundItem } from '../_models/index';
 
 @Injectable()
 export class RefundsService {
 
-    constructor(private http: HttpClient) { }
+    constructor(private http: HttpClient) {
+        moment.locale('en-il');
+    }
+
     getRefundProducts(refund_id: number) {
         return this.http.get<RefundItem[]>(environment.apiUrl + '/refunds/products/' + refund_id);
     }
 
     getTodayRefundId(){
-        return this.http.get<any>(environment.apiUrl + '/refunds/today');
+        return this.getRefundIdByDate(new Date());
+    }
+
+    getRefundIdByDate(date:Date){
+        return this.http.get<any>(environment.apiUrl + '/refunds/create_date/'+moment(date).format('YYYY-MM-DD'));
     }
 
     getRefundById(refund_id:number){
@@ -21,7 +29,7 @@ export class RefundsService {
     }
 
     getRefundByDate(date:Date){
-        return this.http.get<any>(environment.apiUrl + '/refunds/date/'+date.toISOString());
+        return this.http.get<any>(environment.apiUrl + '/refunds/date/'+moment(date).format('YYYY-MM-DD'));
     }
 
     getByCriteria(criteria) {

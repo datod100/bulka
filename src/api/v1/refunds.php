@@ -1,5 +1,8 @@
 <?php
-$app->get('/refunds/today', function () use ($app) {
+$app->get('/refunds/create_date/:date', function ($date) use ($app) {
+    //$date = substr($date,0,10);
+    //$date = date('Y-m-d', strtotime($date));
+
     $res = json_decode($app->request->getBody());
     //echoResponse(200,$res );return;
     $db = new DbHandler();
@@ -8,8 +11,8 @@ $app->get('/refunds/today', function () use ($app) {
         return;
     }
     $q= "INSERT INTO `refund_date` (`refund_date`)
-    SELECT date(now()) FROM DUAL WHERE NOT EXISTS (
-        SELECT `refund_date` FROM refund_date WHERE refund_date= date(now())
+    SELECT '$date' FROM DUAL WHERE NOT EXISTS (
+        SELECT `refund_date` FROM refund_date WHERE refund_date= '$date'
     ) LIMIT 1;";
 
     $stmt = $db->conn->stmt_init();
@@ -17,11 +20,9 @@ $app->get('/refunds/today', function () use ($app) {
     $stmt->execute();
     $refund_id = $stmt->insert_id;
 
-    if ($refund_id == 0){
-        $q= "SELECT refund_date, refund_id FROM refund_date WHERE refund_date= date(now())";
-        $result = $db->getOneRecord($q);
-        $result["refund_id"] = (int)$result["refund_id"];
-    }
+    $q= "SELECT refund_date, refund_id FROM refund_date WHERE refund_date= '$date'";
+    $result = $db->getOneRecord($q);
+    $result["refund_id"] = (int)$result["refund_id"];
     
     echoResponse(200, $result);
 });
@@ -51,8 +52,8 @@ $app->get('/refunds/date/:date', function ($date) use ($app) {
         echoResponse(403, "Not authenticated");
         return;
     }
-    $date = substr($date,0,10);
-    $date = date('Y-m-d', strtotime($date. ' + 1 days'));
+    //$date = substr($date,0,10);
+    //$date = date('Y-m-d', strtotime($date. ' + 1 days'));
     
     $q= "SELECT refund_date, refund_id FROM refund_date WHERE refund_date=? LIMIT 1";     
     $stmt = $db->conn->stmt_init();

@@ -43,6 +43,9 @@ import { RefundComponent } from './refund/refund/refund.component';
 import { CalendarModule } from 'primeng/calendar';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { BalanceReportComponent } from './reports/balance/balance.component';
+import { MomentModule } from 'angular2-moment';
+import {ConfirmDialogModule} from 'primeng/confirmdialog';
+import {ConfirmationService} from 'primeng/api';
 
 
 @NgModule({
@@ -59,7 +62,9 @@ import { BalanceReportComponent } from './reports/balance/balance.component';
         CalendarModule,
         GrowlModule,
         CalendarModule,
-        BrowserAnimationsModule,        
+        BrowserAnimationsModule,  
+        MomentModule,
+        ConfirmDialogModule,
         AgGridModule.withComponents([ListGridComponent, OrdersListGridComponent, AgColorSelectComponent]),
     ],
     declarations: [
@@ -98,6 +103,7 @@ import { BalanceReportComponent } from './reports/balance/balance.component';
         ReportsService,
         GroupService,
         UserService,
+        ConfirmationService,
         {
             provide: HTTP_INTERCEPTORS,
             useClass: JwtInterceptor,

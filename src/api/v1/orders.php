@@ -95,13 +95,12 @@ $app->get('/orders/today', function () use ($app) {
     $stmt = $db->conn->stmt_init();
     $stmt->prepare($q);
     $stmt->execute();
-    $order_id = $stmt->insert_id;
+    $result["order_id"] = $stmt->insert_id;
 
-    if ($order_id == 0){
-        $q= "SELECT order_date, order_id FROM order_date WHERE order_date= date(now())";
-        $result = $db->getOneRecord($q);
-        $result["order_id"] = (int)$result["order_id"];
-    }
+    $q= "SELECT order_date, order_id FROM order_date WHERE order_date= date(now())";
+    $result = $db->getOneRecord($q);
+    $result["order_id"] = (int)$result["order_id"];
+    
     
     echoResponse(200, $result);
 });
