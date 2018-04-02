@@ -100,6 +100,14 @@ app-list-grid{
   cursor: pointer;
 }
 
+.ag-rtl .ag-header-select-all {
+  float: none !important;
+}
+
+.ag-theme-fresh .ag-rtl .ag-selection-checkbox span, .ag-theme-fresh .ag-rtl .ag-group-expanded span, .ag-theme-fresh .ag-rtl .ag-group-contracted span {
+  margin-left: 0px!important;
+}
+
 .ag-row-hover{
   background-color: #007bff12!important;
 }
@@ -192,4 +200,9 @@ p-spinner input{
   top: 56px;
   right: 8px;
   font-weight: bold;
+}
+
+.enabled-package{
+  color: #28a745;
+  border-color: #28a745;
 }

@@ -85,6 +85,15 @@
             </div>
           </div>
         </div>
+        <div class="input-group mb-2">
+          <div class="input-group-prepend">
+            <div class="input-group-text fixed-width">
+              עדיפות בקבוצה
+            </div>
+          </div>
+          <input type="text" class="form-control" [(ngModel)]="client.group_order" OnlyNumber="true" id="group_order" name="group_order">
+        </div>
+
         <h5 class="mb-3">שעות הספקה</h5>
 
         <div class="input-group mb-2">
@@ -114,7 +123,7 @@
           <ngb-timepicker [(ngModel)]="default_time3" id="default_time3" name="default_time3" dir="ltr"></ngb-timepicker>
         </div>
       </div>
-      <div class="col-5 border-left">
+      <div class="col-4 border-left">
         <h5 class="mb-3">מחירים</h5>
 
         <div class="input-group mb-2" *ngFor="let price of client.prices">
@@ -126,6 +135,21 @@
             <input type="text" class="form-control center" placeholder="לא פעיל" OnlyNumber="true" [(ngModel)]="price.price" id="price{{price.product.product_id}}" name="price{{price.product.product_id}}">
             <div class="input-group-append">
               <span class="input-group-text">₪</span>
+            </div>
+          </div>
+      </div>
+      <div class="col-3 border-left">
+        <h5 class="mb-3">אריזות</h5>
+
+        <div class="input-group mb-2" *ngFor="let package of this.client.packages">
+            <div class="input-group-prepend">
+                <div class="input-group-text">
+                    <input type="checkbox" id="check{{package.product.product_id}}" [disabled]="package.product.package==1" [checked]="package.package_enabled" (change)="packageChecked($event, package.product.product_id)">
+                </div>
+              </div>
+            <input type="text" [ngClass]="(package.package_enabled)?'enabled-package':''" class="form-control center" placeholder="תפזורת" readonly OnlyNumber="true" [(ngModel)]="package.price" id="package{{package.product.product_id}}" name="package{{package.product.product_id}}">
+            <div class="input-group-append">
+              <span class="input-group-text">יח'</span>
             </div>
           </div>
       </div>

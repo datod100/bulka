@@ -4,7 +4,7 @@ import { StatusesService, ClientService, OrdersService, AlertService, ProductSer
 import { ActivatedRoute, Router } from '@angular/router';
 import { error } from 'selenium-webdriver';
 import { Observable } from 'rxjs/Observable';
-import { NgbModal, ModalDismissReasons } from '@ng-bootstrap/ng-bootstrap';
+import { NgbModal, ModalDismissReasons, NgbDropdownConfig } from '@ng-bootstrap/ng-bootstrap';
 import { GridApi } from 'ag-grid/dist/lib/gridApi';
 import { GridOptions, SelectCellEditor } from "ag-grid/main";
 import { AgColorSelectComponent } from '../../_helpers/ag-color-select/ag-color-select.component';
@@ -38,7 +38,8 @@ function checkKey(event) {
 @Component({
   selector: 'app-orders-edit',
   templateUrl: './orders-edit.component.html',
-  styleUrls: ['./orders-edit.component.css']
+  styleUrls: ['./orders-edit.component.css'],
+  providers: [NgbDropdownConfig] // add NgbDropdownConfig to the component providers
 })
 
 export class OrdersEditComponent implements OnInit, OnDestroy {
@@ -84,6 +85,7 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
     private alertService: AlertService,
     private groupService: GroupService,
     private confirmationService: ConfirmationService,
+    private config: NgbDropdownConfig,
     private clientService: ClientService) {
 
     moment.locale('en-il');
@@ -93,6 +95,7 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
     this.gridOptions.domLayout = 'autoHeight'
     this.rowSelection = "multiple";
     this.maxDate.setHours(0, 0, 0, 0);
+    config.placement = 'top-left';
 
     this.gridOptions2 = <GridOptions>{
       frameworkComponents: {
@@ -133,26 +136,37 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
 
     this.columnDefs2 = [
       {
-        headerName: "&#x2714;", width: 45, cellClass: "cell-center", editable: false, checkboxSelection: true,
+        headerName: "&#x2714;", width: 45, cellClass: "cell-center center", editable: false, checkboxSelection: true,
+        headerCheckboxSelection: true,
         suppressSorting: true,
         suppressMenu: true,
         cellStyle: function (params) {
+          let style = { backgroundColor: "" };
           if (params.data.cellStyle) {
-            return params.data.cellStyle;
-          } else {
-            return null;
+            style += Object.assign(style, params.data.cellStyle);
           }
+          if (params.data.colorRow) {
+            style.backgroundColor = "#97d2fb";
+          }
+          return style;
         },
         cellRenderer: params => {
           return null;
         },
       },
       {
-        headerName: "סטטוס", field: "status", width: 85, editable: true,
+        headerName: "סטטוס", field: "status", cellClass: "center", width: 85, editable: true,
         cellEditor: 'select',
-        cellEditorParams: {
-          values: ['חדש', 'מוכן', 'נשלח']
-        }
+        cellStyle: function (params) {
+          let style = { backgroundColor: "" };
+          if (params.data.cellStyle) {
+            style += Object.assign(style, params.data.cellStyle);
+          }
+          if (params.data.colorRow) {
+            style.backgroundColor = "#97d2fb";
+          }
+          return style;
+        },
       },
       {
         headerName: "קבוצה", field: "group", width: 80,
@@ -181,16 +195,46 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
         cellEditor: "agColorSelect"
       },
       {
-        headerName: "שם הלקוח", field: "client.name", width: 180, editable: false, rowDrag: true
+        headerName: "שם הלקוח", field: "client.name", width: 180, editable: false, rowDrag: true, suppressFilter: true, suppressSorting: true,
+        cellStyle: function (params) {
+          let style = { backgroundColor: "" };
+          if (params.data.cellStyle) {
+            style += Object.assign(style, params.data.cellStyle);
+          }
+          if (params.data.colorRow) {
+            style.backgroundColor = "#97d2fb";
+          }
+          return style;
+        }
       },
       {
-        headerName: "איש קשר", field: "client.contact_person", width: 100, editable: false
+        headerName: "איש קשר", field: "client.contact_person", width: 100, editable: false, suppressFilter: true, suppressSorting: true,
+        cellStyle: function (params) {
+          let style = { backgroundColor: "" };
+          if (params.data.cellStyle) {
+            style += Object.assign(style, params.data.cellStyle);
+          }
+          if (params.data.colorRow) {
+            style.backgroundColor = "#97d2fb";
+          }
+          return style;
+        }
       },
       {
-        headerName: "טלפון", field: "client.phone", width: 110, editable: false
+        headerName: "טלפון", field: "client.phone", width: 110, cellClass: "center", editable: false, suppressFilter: true, suppressSorting: true,
+        cellStyle: function (params) {
+          let style = { backgroundColor: "" };
+          if (params.data.cellStyle) {
+            style += Object.assign(style, params.data.cellStyle);
+          }
+          if (params.data.colorRow) {
+            style.backgroundColor = "#97d2fb";
+          }
+          return style;
+        }
       },
       {
-        headerName: "שעת אספקה", field: "supply_time", width: 95, cellClass: "header-bold", editable: true
+        headerName: "שעת אספקה", field: "supply_time", width: 95, cellClass: "header-bold center", editable: true
       }
     ];
 
@@ -259,8 +303,8 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
       this.headerData.push({ cycle: this.cycles[i].name, ready_time: this.cycles[i].cycle_time, cellStyleRow: { backgroundColor: '#ffc1074a', userSelect: 'text' } });
     }
     this.headerData.push({ cycle: "סיכום הזמנות", colSpan: 2, disableEdit: true, cellStyle: { left: 'auto' }, cellStyleRow: { backgroundColor: '#ccccccbd', userSelect: 'text' } });
-    this.headerData.push({ cycle: "נשלח", colSpan: 2, disableEdit: true, cellStyle: { left: 'auto' }, cellStyleRow: { backgroundColor: '#ccccccbd', userSelect: 'text' } });
-    this.headerData.push({ cycle: "יתרת סחורה במאפייה", colSpan: 2, disableEdit: true, cellStyle: { left: 'auto' }, cellStyleRow: { backgroundColor: '#ccccccbd', userSelect: 'text' } });
+    this.headerData.push({ cycle: "סיכום האריזות", colSpan: 2, disableEdit: true, cellStyle: { left: 'auto' }, cellStyleRow: { backgroundColor: '#ccccccbd', userSelect: 'text' } });
+    this.headerData.push({ cycle: "סיכום התפזורת", colSpan: 2, disableEdit: true, cellStyle: { left: 'auto' }, cellStyleRow: { backgroundColor: '#ccccccbd', userSelect: 'text' } });
 
     for (let k = 0; k < this.products.length; k++) {
       let colWidth = this.products[k].width + 6;
@@ -318,13 +362,18 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
         headerClass: "header-cell",
         cellClass: "center-cell",
         width: colWidth, cellStyle: function (params) {
-          let style = { backgroundColor: "" };
+          let style = { backgroundColor: "", border: "" };
           if (params.data.cellStyleRow) {
             style += Object.assign(style, params.data.cellStyleRow);
           }
           let price = params.data.client.prices.find(p => p.product.name == params.colDef.headerName);
-          if (params.data.disableEdit || price.price == null) {
+          if (params.data.colorRow) {
+            style.backgroundColor = "#97d2fb";
+          } else if (params.data.disableEdit || price.price == null) {
             style.backgroundColor = "#d9d9d9";
+          }
+          if (price.package_enabled) {
+            style.border = "1px solid #28a745";
           }
           return style;
         }
@@ -345,8 +394,17 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
 
   tableCellValueChanged(params) {
     if (params.colDef.field != 'status' && params.colDef.field != 'supply_time' && params.colDef.field != 'group') {
-      if (isNaN(+params.value)) {
+      let value = +params.value;
+      if (isNaN(value)) {
         params.data[params.colDef.field] = null;
+      } else {
+        let price = params.data.client.prices.find(p => p.product.name == params.colDef.headerName);
+        if (price.package_enabled) {
+          if (value % price.product.package != 0) {
+            this.alertService.error("מספר חייב להתחלק ב-" + price.product.package);
+            params.data[params.colDef.field] = null;
+          }
+        }
       }
     }
 
@@ -354,37 +412,46 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
   }
 
   tableCalc() {
-    let rowOffset = this.cycles.length + 1;
+    let rowOffset = this.cycles.length;
 
     for (let k = 0; k < this.products.length; k++) {
       let colSum = 0;
+      let colSumPackage = 0;
       for (let i = 0; i < this.tableData.length; i++) {
-        if (this.tableData[i].status == "נשלח") {
-          let quantity = +this.tableData[i]["product" + this.products[k].product_id];
+        if (this.tableData[i].status == this.statuses[1]) { //printed
           this.tableData[i].disableEdit = true;
-          if (!isNaN(quantity)) colSum += quantity;
-        } else {
-          this.tableData[i].disableEdit = false;
+          this.tableData[i].colorRow = true;
         }
+        let quantity = +this.tableData[i]["product" + this.products[k].product_id];
+        if (!isNaN(quantity)){
+          colSum += quantity;
+          let price = this.tableData[i].client.prices.find(x=>x.product.product_id == this.products[k].product_id);
+          if (price.package_enabled){
+            colSumPackage +=quantity/this.products[k].package;
+          }
+        }
+
       }
       this.headerData[rowOffset]["product" + this.products[k].product_id] = colSum;
+      this.headerData[rowOffset+1]["product" + this.products[k].product_id] = colSumPackage;
+      this.headerData[rowOffset+2]["product" + this.products[k].product_id] = colSum-colSumPackage*this.products[k].package;
     }
     this.headerTableCalc();
     this.gridApi2.setRowData(this.tableData);
   }
 
   headerTableCalc() {
-    let rowOffset = this.cycles.length;
-    for (let k = 0; k < this.products.length; k++) {
-      this.headerData[rowOffset]["product" + this.products[k].product_id] = 0;
-      //this.headerData[rowOffset + 1]["product" + this.products[k].product_id] = 0;
-      for (let i = 0; i < this.cycles.length; i++) {
-        this.headerData[rowOffset]["product" + this.products[k].product_id] += +this.headerData[i]["product" + this.products[k].product_id];
-      }
+    // let rowOffset = this.cycles.length;
+    // for (let k = 0; k < this.products.length; k++) {
+    //   this.headerData[rowOffset]["product" + this.products[k].product_id] = 0;
+    //   //this.headerData[rowOffset + 1]["product" + this.products[k].product_id] = 0;
+    //   for (let i = 0; i < this.cycles.length; i++) {
+    //     this.headerData[rowOffset]["product" + this.products[k].product_id] += +this.headerData[i]["product" + this.products[k].product_id];
+    //   }
 
-      if (isNaN(+this.headerData[rowOffset + 1]["product" + this.products[k].product_id])) this.headerData[rowOffset + 1]["product" + this.products[k].product_id] = 0;
-      this.headerData[rowOffset + 2]["product" + this.products[k].product_id] = this.headerData[rowOffset]["product" + this.products[k].product_id] - this.headerData[rowOffset + 1]["product" + this.products[k].product_id];
-    }
+    //   if (isNaN(+this.headerData[rowOffset + 1]["product" + this.products[k].product_id])) this.headerData[rowOffset + 1]["product" + this.products[k].product_id] = 0;
+    //   this.headerData[rowOffset + 2]["product" + this.products[k].product_id] = this.headerData[rowOffset]["product" + this.products[k].product_id] - this.headerData[rowOffset + 1]["product" + this.products[k].product_id];
+    // }
     this.gridApi.setRowData(this.headerData);
   }
 
@@ -435,6 +502,9 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
         this.clients = data[3];
         this.statuses = data[4];
 
+        this.columnDefs2.find(x => x.field == "status").cellEditorParams = { values: this.statuses };
+        this.gridApi2.setColumnDefs(this.columnDefs2);
+
         let clients_counter = 0;
         for (let i = 0; i < this.clients.length; i++) {
           this.clientService.getPricesByClientId(this.clients[i].client_id).subscribe(
@@ -442,7 +512,14 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
               this.clients[i].prices = [];
               for (let k = 0; k < this.products.length; k++) {
                 let price = prices.find(p => p.product_id == this.products[k].product_id);
-                this.clients[i].prices.push(new Price(this.products[k], (price) ? price.price : null));
+                //this.clients[i].prices.push(new Price(this.products[k], (price) ? price.price : null));
+
+                if (price) {
+                  this.clients[i].prices.push(new Price(this.products[k], price.price, null, (price.package_enabled) ? 1 : 0));
+                } else {
+                  this.clients[i].prices.push(new Price(this.products[k], null, null, 0));
+                }
+
               };
               clients_counter++;
               if (clients_counter == this.clients.length) {
@@ -516,12 +593,12 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
   fillNewOrder() {
     this.tableData = [];
     for (let i = 0; i < this.clients.length; i++) {
-      this.tableData.push({ select: false, status: 'חדש', group: this.groups.find(e => this.clients[i].group_id == e.group_id), client: this.clients[i], supply_time: this.clients[i].default_time1 });
+      this.tableData.push({ select: false, status: this.statuses[0], group: this.groups.find(e => this.clients[i].group_id == e.group_id), client: this.clients[i], supply_time: this.clients[i].default_time1 });
       if (this.clients[i].default_time2) {
-        this.tableData.push({ select: false, status: 'חדש', group: this.groups.find(e => this.clients[i].group_id == e.group_id), client: this.clients[i], supply_time: this.clients[i].default_time2 });
+        this.tableData.push({ select: false, status: this.statuses[0], group: this.groups.find(e => this.clients[i].group_id == e.group_id), client: this.clients[i], supply_time: this.clients[i].default_time2 });
       }
       if (this.clients[i].default_time3) {
-        this.tableData.push({ select: false, status: 'חדש', group: this.groups.find(e => this.clients[i].group_id == e.group_id), client: this.clients[i], supply_time: this.clients[i].default_time3 });
+        this.tableData.push({ select: false, status: this.statuses[0], group: this.groups.find(e => this.clients[i].group_id == e.group_id), client: this.clients[i], supply_time: this.clients[i].default_time3 });
       }
     }
     this.gridApi2.setRowData(this.tableData);

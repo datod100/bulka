@@ -40,6 +40,7 @@ export class EditComponent implements OnInit, OnDestroy {
 
     this.client = new Client();
     this.client.prices = [];
+    this.client.packages = [];
     this.selectedGroup = new Group(1, "", "");
 
     config.spinners = false;
@@ -110,6 +111,17 @@ export class EditComponent implements OnInit, OnDestroy {
 
   }
 
+  packageChecked(event, product_id){
+    let xpackage = this.client.packages.find(x=>x.product.product_id==product_id);
+    if (!event.srcElement.checked){
+      xpackage.price=null;
+    }else{
+      xpackage.price = xpackage.product.package;
+    }
+    xpackage.package_enabled = event.srcElement.checked;
+    this.client.prices.find(x=>x.product.product_id == product_id).package_enabled = (event.srcElement.checked)?1:0;
+  }
+
   ngOnInit() {
     this.sub = this.route.params.subscribe(params => {
       this.client_id = +params['id'];
@@ -140,9 +152,16 @@ export class EditComponent implements OnInit, OnDestroy {
             this.client = data[0][0];
             let prices: Price[] = data[1];
             this.client.prices = [];
+            this.client.packages = [];
             for (let i = 0; i < this.products.length; i++) {
               let price = prices.find(p => p.product_id == this.products[i].product_id);
-              this.client.prices.push(new Price(this.products[i], (price) ? price.price : null));
+              if (price && price.package_enabled){
+                this.client.packages.push(new Price(this.products[i],this.products[i].package,null,1));
+                this.client.prices.push(new Price(this.products[i], (price) ? price.price : null,null,1));
+              }else{
+                this.client.prices.push(new Price(this.products[i], (price) ? price.price : null, null, 0));
+                this.client.packages.push(new Price(this.products[i],null,null,0));
+              }
             };
 
             this.selectedGroup = this.groups.find(group => group.group_id == this.client.group_id);

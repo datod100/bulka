@@ -10,7 +10,7 @@ $app->get('/reports/refunds/:start_date/:end_date', function ($start_date, $end_
     }
     $q = "SELECT o.client_id, op.product_id, SUM(op.quantity) total_quantity
     FROM order_date od INNER JOIN orders o ON o.order_id = od.order_id INNER JOIN order_products op ON op.index_id = o.index_id
-    WHERE (od.order_date BETWEEN ? AND ?) AND o.status_id=2
+    WHERE (od.order_date BETWEEN ? AND ?) AND o.status_id=1
     GROUP BY o.client_id, op.product_id";
     $stmt = $db->conn->stmt_init();
     $stmt->prepare($q);

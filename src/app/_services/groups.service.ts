@@ -7,11 +7,12 @@ import { Observable } from 'rxjs/Observable';
 @Injectable()
 export class GroupService {
     private groups: Group[] = [];
-    private colors: string[] = ["#C0C0C0",  "#FF0000",  "#FFFF00",  "#00FF00",  "#00FFFF",  "#e49114", "#FF00FF", "#0074D9"];
+    private colors: string[] = ["#C0C0C0",  "#f57878",  "#FFFF00",  "#8cf58c",  "#00FFFF",  "#f3bd6c", "#ff80ff", "#6ab9ff"];
+    private names: string[] = ["א",  "ב",  "ג",  "ד",  "ה",  "ו", "ז", "ח"];
 
     constructor() {
         for (let i: number = 0; i < 8; i++) {
-            this.groups.push(new Group(i, "קבוצה " + i, this.colors[i]));
+            this.groups.push(new Group(i, "קבוצה " + this.names[i], this.colors[i]));
         }
     }
     getAll() {

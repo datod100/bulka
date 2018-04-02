@@ -3,4 +3,5 @@ export class Product {
     name: string;
     sort_order: number;
     width: number;
+    package : number;
 }

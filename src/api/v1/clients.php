@@ -11,13 +11,14 @@ $app->get('/clients(/:client_id)', function ($client_id=null) use ($app) {
     if (isset($client_id)){
         $q .= " WHERE client_id=".$client_id;
     }
-    $q .= " ORDER BY name";
+    $q .= " ORDER BY group_id, group_order, name";
     $res = $db->getRecords($q);
 
     while ($row = $res->fetch_assoc()) {
         $row['client_id'] = (int)$row['client_id'];
         $row['hetpei'] = (int)$row['hetpei'];
         $row['group_id'] = (int)$row['group_id'];
+        $row['group_order'] = (int)$row['group_order'];
         $row['travel_duration'] = substr($row['travel_duration'], 0, -3);
         $row['default_time1'] = substr($row['default_time1'], 0, -3);
         $row['default_time2'] = substr($row['default_time2'], 0, -3);
@@ -35,7 +36,7 @@ $app->get('/clients/prices/:client_id', function ($client_id=null) use ($app) {
         echoResponse(403, "Not authenticated");
         return;
     }
-    $q = "select product_id, price from client_product_price WHERE client_id=?";
+    $q = "select product_id, price, package_enabled from client_product_price WHERE client_id=?";
     
     $stmt = $db->conn->stmt_init();
     $stmt->prepare($q);
@@ -47,6 +48,7 @@ $app->get('/clients/prices/:client_id', function ($client_id=null) use ($app) {
     while ($row = $result->fetch_assoc()) {
         $row['product_id'] = (int)$row['product_id'];
         $row['price'] = (float)$row['price'];
+        $row['package_enabled'] = (int)$row['package_enabled'];
         $response[] = $row;
     }
     //echoResponse(200, var_dump($response)); return;
@@ -65,8 +67,6 @@ $app->delete('/clients/:client_id', function ($client_id) {
     $res = $db->execute($q);
     echoResponse(200, 'OK');
 });
-
-
 
 //save prices
 $app->put('/clients/prices/save/:client_id', function ($client_id) use ($app) {
@@ -89,14 +89,17 @@ $app->put('/clients/prices/save/:client_id', function ($client_id) use ($app) {
             $q = "INSERT INTO client_product_price SET
                 product_id=?,
                 client_id=?,
-                price=?";
+                price=?,                
+                package_enabled=?
+                ";
 
             $stmt = $db->conn->stmt_init();
             $stmt->prepare($q);
-            $stmt->bind_param('ddd',
+            $stmt->bind_param('dddd',
                 $row->product->product_id,
                 $client_id,
-                $row->price
+                $row->price,
+                $row->package_enabled
             );
 
             $stmt->execute();
@@ -124,6 +127,7 @@ $app->put('/clients', function () use ($app) {
         contact_person=?,
         travel_duration=?,
         group_id=?,
+        group_order=?,
         default_time1=?,
         default_time2=?,
         default_time3=?
@@ -131,7 +135,7 @@ $app->put('/clients', function () use ($app) {
 
     $stmt = $db->conn->stmt_init();
     $stmt->prepare($q);
-    $stmt->bind_param('sdsssssdsssd',
+    $stmt->bind_param('sdsssssddsssd',
         $res->name,
         $res->hetpei,
         $res->address,
@@ -140,6 +144,7 @@ $app->put('/clients', function () use ($app) {
         $res->contact_person,
         $res->travel_duration,
         $res->group_id,
+        $res->group_order,
         $res->default_time1,
         $res->default_time2,
         $res->default_time3,
@@ -169,13 +174,14 @@ $app->post('/clients', function () use ($app) {
         contact_person=?,
         travel_duration=?,
         group_id=?,
+        group_order=?,
         default_time1=?,
         default_time2=?,
         default_time3=?";
 
     $stmt = $db->conn->stmt_init();
     $stmt->prepare($q);
-    $stmt->bind_param('sdsssssdsss',
+    $stmt->bind_param('sdsssssddsss',
         $res->name,
         $res->hetpei,
         $res->address,
@@ -184,6 +190,7 @@ $app->post('/clients', function () use ($app) {
         $res->contact_person,
         $res->travel_duration,
         $res->group_id,
+        $res->group_order,
         $res->default_time1,
         $res->default_time2,
         $res->default_time3

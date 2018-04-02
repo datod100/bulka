@@ -14,4 +14,5 @@ export class Client {
     default_time2: string;
     default_time3: string;
     prices : Price[];
+    packages : Price[];
 }

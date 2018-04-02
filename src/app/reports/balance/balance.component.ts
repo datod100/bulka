@@ -9,7 +9,7 @@ import { GridApi } from 'ag-grid/dist/lib/gridApi';
 import { GridOptions, SelectCellEditor } from "ag-grid/main";
 import { AgColorSelectComponent } from '../../_helpers/ag-color-select/ag-color-select.component';
 import { isArray } from 'util';
-import { DatePipe } from '@angular/common';
+import { DatePipe, DecimalPipe } from '@angular/common';
 
 function precisionRound(number, precision) {
   var factor = Math.pow(10, precision);
@@ -97,9 +97,9 @@ export class BalanceReportComponent implements OnInit {
         }
       },
       {
-        headerName: "טלפון", field: "client.phone", width: 110, editable: false, cellStyle: (params) => {
+        headerName: "טלפון", field: "client.phone", width: 110, editable: false, cellClass:'center', cellStyle: (params) => {
           if (!params.data.delimiter) {
-            return { backgroundColor: '#ccccccbd' };
+            return Object.assign({ backgroundColor: '#ccccccbd' }, params.data.cellStyle, params.data.cellSumStyle);
           }
         }
       }
@@ -160,8 +160,8 @@ export class BalanceReportComponent implements OnInit {
 
         for (let k = 0; k < orders.length; k++) {
           for (let i = 0; i < this.tableData.length; i++) {
-            if (this.tableData[i].client && this.tableData[i].client.client_id == orders[k].client_id) {
-              if (this.tableData[i].type == 'נשלח') {
+            if (this.tableData[i].type == 'נשלח') {
+              if (this.tableData[i-1].client && this.tableData[i-1].client.client_id == orders[k].client_id) {
                 this.tableData[i]['product' + orders[k].product_id] = orders[k].total_quantity
               }
             }
@@ -170,8 +170,8 @@ export class BalanceReportComponent implements OnInit {
 
         for (let k = 0; k < refunds.length; k++) {
           for (let i = 0; i < this.tableData.length; i++) {
-            if (this.tableData[i].client && this.tableData[i].client.client_id == refunds[k].client_id) {
-              if (this.tableData[i].type == 'זיכוי') {
+            if (this.tableData[i].type == 'זיכוי') {
+              if (this.tableData[i-2].client && this.tableData[i-2].client.client_id == refunds[k].client_id) {
                 this.tableData[i]['product' + refunds[k].product_id] = refunds[k].total_quantity
               }
             }
@@ -199,7 +199,9 @@ export class BalanceReportComponent implements OnInit {
         headerName: this.products[k].name,
         headerClass: "header-cell",
         field: "product" + this.products[k].product_id,
-        cellStyle: (params) => { return params.data.cellStyle },
+        cellStyle: (params) => { 
+          return params.data.cellStyle
+        },
         cellClass:"center",
         valueFormatter: (params) => {
           if (params.value) {
@@ -212,31 +214,11 @@ export class BalanceReportComponent implements OnInit {
         width: (colWidth < 80) ? 80 : colWidth
       });
     }
-    this.columnDefs.push({
-      headerName: 'סה"כ',
-      field : 'sum',
-      headerClass: "header-cell",
-      cellStyle: (params) => {
-        if (!params.data.delimiter) {
-          return Object.assign({ backgroundColor: '#ccccccbd' }, params.data.cellStyle);
-        }
-      },
-      cellClass:"center",
-      valueFormatter: (params) => {
-        if (params.value) {
-          if (params.data.formatter) {
-            return precisionRound(params.value,2) + params.data.formatter;
-          }
-        }
-        return params.value;
-      },
-      width: 100
-
-    });
 
     for (let i = 0; i < this.clients.length; i++) {
-      this.tableData.push({ type: 'נשלח', client: this.clients[i] });
-      this.tableData.push({ type: 'זיכוי', client: this.clients[i] });
+      this.tableData.push({ type: 'לקוח', client: this.clients[i] });
+      this.tableData.push({ type: 'נשלח' });
+      this.tableData.push({ type: 'זיכוי' });
       this.tableData.push({ type: 'סה"כ', cellStyle: { fontWeight: 'bold', direction: 'ltr' } });
       this.tableData.push({ type: 'סה"כ ש"ח', cellStyle: { fontWeight: 'bold', direction: 'ltr' }, formatter: " ₪" });
       this.tableData.push({ delimiter: true });
@@ -271,28 +253,30 @@ export class BalanceReportComponent implements OnInit {
 
   calcTable() {
 
-    for (let i = 0; i < this.tableData.length; i = i + 5) {
+    for (let i = 0; i < this.tableData.length; i = i + 6) {
       let sum = 0;
       for (let k = 0; k < this.products.length; k++) {
         let prop = 'product' + this.products[k].product_id;
         let order = 0;
         let refund = 0;
-        if (prop in this.tableData[i]) {
-          order = this.tableData[i][prop];
+        if (prop in this.tableData[i+1]) {
+          order = this.tableData[i+1][prop];
         }
-        if (prop in this.tableData[i + 1]) {
-          refund = this.tableData[i + 1][prop];
+        if (prop in this.tableData[i + 2]) {
+          refund = this.tableData[i + 2][prop];
         }
 
         let price = this.tableData[i].client.prices.find(p => p.product.product_id == this.products[k].product_id);
         if (price != null && price.price != null) {
-          this.tableData[i + 2]['product' + this.products[k].product_id] = order - refund;
+          this.tableData[i + 3]['product' + this.products[k].product_id] = order - refund;
           let colSum = (order - refund) * +price.price;
-          this.tableData[i + 3]['product' + this.products[k].product_id] = colSum;
+          this.tableData[i +4]['product' + this.products[k].product_id] = colSum;
           sum += colSum;
         }
       }
-      this.tableData[i + 3]['sum'] = sum;
+      this.tableData[i + 4].client = new Client();
+      this.tableData[i + 4].client.phone = new DecimalPipe('en-US').transform(sum,'1.0-2') +  " ₪";
+      this.tableData[i + 4].cellSumStyle = { fontWeight: 'bold', border: '2px solid red', backgroundColor: '#43dbe2bd'};
     }
   }
 

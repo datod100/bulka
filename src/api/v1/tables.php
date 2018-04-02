@@ -18,6 +18,7 @@ $app->get('/products(/:id)', function ($id=null) use ($app) {
     while ($row = $res->fetch_assoc()) {
         $row['product_id'] = (int)$row['product_id'];
         $row['sort_order'] = (int)$row['sort_order'];
+        $row['package'] = (int)$row['package'];
         $row['width'] = (int)$row['width'];
         $response[] = $row;
     }

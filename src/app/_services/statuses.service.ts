@@ -8,7 +8,7 @@ export class StatusesService {
 
   constructor(private http: HttpClient) { }
   getStatuses() {
-    return Observable.of<string[]>(['חדש', 'מוכן', 'נשלח']);
+    return Observable.of<string[]>(['עריכה', 'הודפס']);
   }
 
   getCycles() {
