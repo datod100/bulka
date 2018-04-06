@@ -9,6 +9,7 @@
   
     <ag-grid-angular dir="ltr" class="ag-theme-fresh pt-3" [ngStyle]="tableStyle" [columnDefs]="columnDefs" [context]="context"
       [gridOptions]="gridOptions" (gridReady)="onGridReady($event)" [defaultColDef]="defaultColDef"
+      [suppressMovableColumns]="true"
       (cellValueChanged)="tableCellValueChanged($event)" [enterMovesDownAfterEdit]="true" [enableRtl]="true" [animateRows]="true">
     </ag-grid-angular>
     

@@ -271,18 +271,22 @@ export class RefundComponent implements OnInit, OnDestroy {
   }
 
   clearTable() {
+    this.gridApi.stopEditing(false);
+    for (let i = 0; i < this.tableData.length; i++) {
+      for (let k = 0; k < this.products.length; k++) {
+        this.tableData[i]["product" + this.products[k].product_id] = "";
+      }
+    }
+    this.gridApi.setRowData(this.tableData);
+  }
+
+  clearTableConfirm() {
     this.confirmationService.confirm({
       message: 'האם אתה בטוח שברצונך לנקות טבלה?',
       header: 'אישור',
       icon: 'fa fa-question-circle',
       accept: () => {
-        this.gridApi.stopEditing(false);
-        for (let i = 0; i < this.tableData.length; i++) {
-          for (let k = 0; k < this.products.length; k++) {
-            this.tableData[i]["product" + this.products[k].product_id] = "";
-          }
-        }
-        this.gridApi.setRowData(this.tableData);
+        this.clearTable();
       }
     });
   }

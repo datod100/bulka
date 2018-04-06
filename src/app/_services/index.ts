@@ -8,3 +8,4 @@ export * from './refunds.service';
 export * from './groups.service';
 export * from './products.service';
 export * from './reports.service';
+export * from './docs.service';

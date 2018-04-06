@@ -10,6 +10,7 @@ export class Client {
     contact_person: string;
     travel_duration: string;
     group_id: number;
+    group_order : number;
     default_time1: string;
     default_time2: string;
     default_time3: string;

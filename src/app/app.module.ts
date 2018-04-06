@@ -12,7 +12,7 @@ import { routing }        from './app.routing';
 import { AlertComponent } from './_directives/index';
 import { AuthGuard } from './_guards/index';
 import { JwtInterceptor } from './_helpers/index';
-import { AlertService, AuthenticationService, UserService, ClientService, OrdersService, StatusesService, GroupService, ProductService, RefundsService, ReportsService } from './_services/index';
+import { AlertService, AuthenticationService, UserService, ClientService, OrdersService, StatusesService, GroupService, ProductService, RefundsService, ReportsService, DocsService } from './_services/index';
 import { HomeComponent } from './home/index';
 import { LoginComponent } from './login/index';
 import { RegisterComponent } from './register/index';
@@ -104,6 +104,7 @@ import {ConfirmationService} from 'primeng/api';
         GroupService,
         UserService,
         ConfirmationService,
+        DocsService,
         {
             provide: HTTP_INTERCEPTORS,
             useClass: JwtInterceptor,

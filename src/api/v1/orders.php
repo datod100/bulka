@@ -170,6 +170,7 @@ $app->get('/orders/:filter', function ($filter=null) use ($app) {
         $row["status_id"] = (int)$row["status_id"];
         $row["group_id"] = (int)$row["group_id"];
         $row['supply_time'] = substr($row['supply_time'], 0, -3);
+        $row["invoice_number"] = (int)$row["invoice_number"];
         $response[] = $row;
     }
     echoResponse(200, $response);
@@ -191,11 +192,18 @@ $app->put('/orders/save', function () use ($app) {
     $stmt->bind_param('d',$items[0]->order_id);
     $stmt->execute();
 
-    for($i = 0; $i < count($items); ++$i) {    
-        $q = "INSERT INTO `orders` (`sort_order`, `order_id`, `client_id`, `status_id`, `group_id`, `supply_time`) VALUES (?,?,?,?,?,?)";
+    for($i = 0; $i < count($items); ++$i) {
+        if ($items[$i]->invoice_number == 0){
+            $q2 = "SELECT MAX(invoice_number)+1 id FROM orders";
+            $r = $db->getRecords($q2);
+            $row = $r->fetch_assoc();
+            $items[$i]->invoice_number = $row['id'];
+        }
+
+        $q = "INSERT INTO `orders` (`sort_order`, `order_id`, `client_id`, `status_id`, `group_id`, `supply_time`, `invoice_number`) VALUES (?,?,?,?,?,?,?)";
         $stmt = $db->conn->stmt_init();
         $stmt->prepare($q);
-        $stmt->bind_param('ddddds',$items[$i]->sort_order, $items[$i]->order_id, $items[$i]->client_id, $items[$i]->status_id, $items[$i]->group_id, $items[$i]->supply_time);
+        $stmt->bind_param('dddddsd',$items[$i]->sort_order, $items[$i]->order_id, $items[$i]->client_id, $items[$i]->status_id, $items[$i]->group_id, $items[$i]->supply_time, $items[$i]->invoice_number);
         $stmt->execute();
         $index_id[] = $stmt->insert_id;
     }

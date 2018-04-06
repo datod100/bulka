@@ -76,30 +76,30 @@ export class BalanceReportComponent implements OnInit {
 
     this.columnDefs = [
       {
-        headerName: "", field: "type", width: 85, editable: false, cellStyle: (params) => {
+        headerName: "", field: "type", width: 100, editable: false, cellStyle: (params) => {
           if (!params.data.delimiter) {
-            return Object.assign({ backgroundColor: '#ccccccbd' }, params.data.cellStyle);
+            return Object.assign({ backgroundColor: '#f6f6f6' }, params.data.cellStyle);
           }
         }
       },
       {
         headerName: "שם הלקוח", field: "client.name", width: 180, editable: false, cellStyle: (params) => {
           if (!params.data.delimiter) {
-            return { backgroundColor: '#ccccccbd' };
+            return Object.assign({ backgroundColor: '#f6f6f6' }, params.data.cellStyle);
           }
         }
       },
       {
         headerName: "איש קשר", field: "client.contact_person", width: 100, editable: false, cellStyle: (params) => {
           if (!params.data.delimiter) {
-            return { backgroundColor: '#ccccccbd' };
+            return Object.assign({ backgroundColor: '#f6f6f6' }, params.data.cellStyle);
           }
         }
       },
       {
         headerName: "טלפון", field: "client.phone", width: 110, editable: false, cellClass:'center', cellStyle: (params) => {
           if (!params.data.delimiter) {
-            return Object.assign({ backgroundColor: '#ccccccbd' }, params.data.cellStyle, params.data.cellSumStyle);
+            return Object.assign({ backgroundColor: '#f6f6f6' }, params.data.cellStyle, params.data.cellSumStyle);
           }
         }
       }
@@ -216,11 +216,11 @@ export class BalanceReportComponent implements OnInit {
     }
 
     for (let i = 0; i < this.clients.length; i++) {
-      this.tableData.push({ type: 'לקוח', client: this.clients[i] });
+      this.tableData.push({ type: 'לקוח', client: this.clients[i], cellStyle: { backgroundColor:'white' } });
       this.tableData.push({ type: 'נשלח' });
       this.tableData.push({ type: 'זיכוי' });
-      this.tableData.push({ type: 'סה"כ', cellStyle: { fontWeight: 'bold', direction: 'ltr' } });
-      this.tableData.push({ type: 'סה"כ ש"ח', cellStyle: { fontWeight: 'bold', direction: 'ltr' }, formatter: " ₪" });
+      this.tableData.push({ type: 'סה"כ מוצרים', cellStyle: { fontWeight: 'bold', direction: 'ltr' } });
+      this.tableData.push({ type: 'לתשלום', cellStyle: { fontWeight: 'bold', direction: 'ltr' }, formatter: " ₪" });
       this.tableData.push({ delimiter: true });
     }
 
@@ -276,7 +276,7 @@ export class BalanceReportComponent implements OnInit {
       }
       this.tableData[i + 4].client = new Client();
       this.tableData[i + 4].client.phone = new DecimalPipe('en-US').transform(sum,'1.0-2') +  " ₪";
-      this.tableData[i + 4].cellSumStyle = { fontWeight: 'bold', border: '2px solid red', backgroundColor: '#43dbe2bd'};
+      this.tableData[i + 4].cellSumStyle = { fontWeight: 'bold',  backgroundColor: '#43dbe2bd'};
     }
   }
 

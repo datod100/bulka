@@ -8,22 +8,26 @@
     <div class="text-left">
     <ag-grid-angular style="margin-right: auto;" dir="ltr" class="headerT ag-theme-fresh pt-3" [ngStyle]="headerTableStyle" [columnDefs]="columnDefs" [context]="context"
       [gridOptions]="gridOptions" (gridReady)="onGridReady($event)" [defaultColDef]="defaultColDef"
+      [suppressMovableColumns]="true"
       (cellValueChanged)="headerTableCellValueChanged($event)" [enterMovesDownAfterEdit]="true" [enableRtl]="true" [animateRows]="true">
     </ag-grid-angular>
     </div>
 
     <h3>פירוט הזמנות</h3>
-    <ag-grid-angular dir="ltr" class="ag-theme-fresh mb-2" [ngStyle]="tableStyle" [columnDefs]="columnDefs2" [context]="context"[gridOptions]="gridOptions2" (gridReady)="onGridReady2($event)" [defaultColDef]="defaultColDef2"
-    [enterMovesDownAfterEdit]="true" [enableRtl]="true" [animateRows]="true" 
-    
+    <ag-grid-angular dir="ltr" class="ag-theme-fresh mb-2" [ngStyle]="tableStyle" [columnDefs]="columnDefs2" [context]="context" [gridOptions]="gridOptions2" (gridReady)="onGridReady2($event)"
+    [defaultColDef]="defaultColDef2"
+    [enterMovesDownAfterEdit]="true"
+    [enableRtl]="true"
+    [animateRows]="true"     
     [suppressRowClickSelection]="true"
+    [suppressMovableColumns]="true"
     [rowSelection]="rowSelection"
-    [enableSorting]="true"
-    [enableFilter]="true"
-
-    (cellValueChanged)="tableCellValueChanged($event)" [rowDragManaged]="true">
+    [enableSorting]="false"
+    [enableFilter]="false"
+    [rowDragManaged]="false"
+    (cellValueChanged)="tableCellValueChanged($event)">
     </ag-grid-angular>
-    <button class="btn btn-primary mr-2" (click)="saveOrder()" [disabled]="loading" *ngIf="isNew"><i class="fa fa-save"></i> שמור</button>
+    <button class="btn btn-primary mr-2" (click)="saveWithReload(null)" [disabled]="loading" *ngIf="isNew"><i class="fa fa-save"></i> שמור</button>
 
     <div class="d-inline-block mr-2" ngbDropdown #myDrop="ngbDropdown" *ngIf="isNew">
       <button class="btn btn-secondary" id="addItemMenu" ngbDropdownToggle [disabled]="loading"><i class="fa fa-plus-circle"></i> הוסף שורה</button>
@@ -33,8 +37,8 @@
     </div>
 
     <button class="btn btn-danger mr-2" (click)="deleteRows()" [disabled]="loading" *ngIf="isNew"><i class="fa fa-trash"></i> מחק שורות מסומנות</button>
-    <button class="btn btn-secondary mr-2" [disabled]="loading" *ngIf="isNew"><i class="fa fa-print"></i> הדפס תעודות משלוח</button>
-    <button class="btn btn-primary mr-2" (click)="clearTableConfirm()" [disabled]="loading" *ngIf="isNew"><i class="fa fa-save"></i> נקה טבלה</button>
+    <button class="btn btn-secondary mr-2" [disabled]="loading" *ngIf="isNew" (click)="printRows()"><i class="fa fa-print"></i> הדפס תעודות משלוח</button>
+    <!-- <button class="btn btn-primary mr-2" (click)="clearTableConfirm()" [disabled]="loading" *ngIf="isNew"><i class="fa fa-save"></i> נקה טבלה</button> -->
   </div>
 </div>
 

@@ -10,6 +10,7 @@ export class Order {
     group_id: number;
     supply_time: string;
     sort_order:number;
+    invoice_number:number;
 }
 
 export class OrderSummaryItem{    

@@ -26,43 +26,81 @@ class Pdf extends Fpdi\TcpdfFpdi
         }
     }
 
-$app->get('/docs/packinglist/:order_id', function ($order_id) use ($app) {
+$app->get('/docs/packinglist/:order_id/:indecies', function ($order_id, $indecies) use ($app) {
     //echoResponse(200, var_dump($id)); return;
     $response = array();
     $db = new DbHandler();
-    $x_offset = 150;
         
     // initiate PDF
     $pdf = new Pdf();
-    $pdf->SetMargins(0, 0, 0);
-    
-    // add a page
-    $pdf->AddPage("L", "A4");
-    
-    
+    $pdf->SetMargins(0, 0, 0);    
     $pdf->setRTL(true);
+
+    $indecies = explode(",",$indecies);
+
+    $q = "SELECT DISTINCT index_id FROM `orders` WHERE order_id=? ORDER BY `index_id`";
+    $stmt = $db->conn->stmt_init();
+    $stmt->prepare($q);
+    $stmt->bind_param('d',$order_id);
+    $stmt->execute();
+    $res = $stmt->get_result();
+
+    $index_ids = array();
+    $i=0;
+    while ($row = $res->fetch_assoc()) {
+        if (in_array($i, $indecies)){
+            $index_ids[] = $row['index_id'];
+        }
+        $i++;
+    }
+    //echoResponse(200, var_dump($index_ids)); return;
+
+    for ($index=0; $index < count($index_ids); $index++){
+        createInvoice($pdf, $db, $order_id, $index, $index_ids[$index]);
+    }
+
+    $pdf->Output('Invoice'.$order_id.'.pdf','D');
+    exit;
+});
+
+
+function createInvoice(&$pdf, &$db, $order_id, $index, $index_id){
+    $x_offset = 150;
+   
     // get external file content
-    $pl_number = '15125';
-    $date = '02/11/2018';    
-    $client = 'לחם הכפר אלפי מנשה';
-    //$client = 'מרקט העיר';
+    $date = date("m/d/Y");
+
+    $q = "SELECT DISTINCT c.name client_name, p.name product_name, cp.price, o.invoice_number, op.*
+    FROM `order_products` op INNER JOIN products p ON op.product_id=p.product_id INNER JOIN orders o ON (op.order_id = o.order_id AND op.index_id = o.index_id)
+    INNER JOIN clients c ON c.client_id=o.client_id INNER JOIN client_product_price cp ON (c.client_id=cp.client_id AND p.product_id = cp.product_id)
+    WHERE o.index_id=?
+    ORDER BY p.sort_order";
+
+    $stmt = $db->conn->stmt_init();
+    $stmt->prepare($q);
+    $stmt->bind_param('d',$index_id);
+    $stmt->execute();
+    $res = $stmt->get_result();
 
     $products = array();
-    $q = "select * from products ORDER BY sort_order";
-    $res = $db->getRecords($q);
-
     while ($row = $res->fetch_assoc()) {
         $row['product_id'] = (int)$row['product_id'];
-        $row['sort_order'] = (int)$row['sort_order'];
         $products[] = $row;
     }
+
+    if (count($products)==0){
+        return;
+    }
+
+    // add a page
+    $pdf->AddPage("L", "A4");
 
     //echoResponse(200, var_dump($products)); return;
     $pdf->SetFont('freeserifb', '', 16);
     $pdf->SetXY(46, 44.5);
-    $pdf->Write(5, $pl_number);
+    $pdf->Write(5, $products[0]['invoice_number']);
     $pdf->SetXY(46 + $x_offset, 44.5);
-    $pdf->Write(5, $pl_number);
+    $pdf->Write(5,  $products[0]['invoice_number']);
     
     // date
     $pdf->SetFont('freeserif', '', 13);
@@ -73,22 +111,51 @@ $app->get('/docs/packinglist/:order_id', function ($order_id) use ($app) {
 
     //client
     $pdf->SetXY(24, 53);
-    $pdf->Write(5, $client);
+    $pdf->Write(5, $products[0]['client_name']);
     $pdf->SetXY(24 + $x_offset, 53);
-    $pdf->Write(5, $client);
+    $pdf->Write(5, $products[0]['client_name']);
 
+    $total = 0;
     for ($i=0;$i<count($products);$i++){
         $pdf->SetXY(12, 74.5+$i*8.2);
-        $pdf->Write(5, $products[$i]['name']);        
-        $pdf->SetX(81.5);
-        $pdf->Write(5, $i);
+        $pdf->Write(5, $products[$i]['product_name']);
+        $pdf->SetX(79);
+        $pdf->Write(5, $products[$i]['quantity']);
+        $pdf->SetX(108);
+        $pdf->Write(5, "₪");
+        $pdf->SetX(95);
+        $pdf->Write(5, number_format($products[$i]['price'],2));
+        $pdf->SetX(132);
+        $pdf->Write(5, "₪");
+        $pdf->SetX(119);
+        $pdf->Write(5, number_format($products[$i]['price']*$products[$i]['quantity'],2));
+        $total += $products[$i]['price']*$products[$i]['quantity'];
         
         $pdf->SetX(12 + $x_offset);
-        $pdf->Write(5, $products[$i]['name']);
-        $pdf->SetX(81.5 + $x_offset);
-        $pdf->Write(5, $i);
+        $pdf->Write(5, $products[$i]['product_name']);
+        $pdf->SetX(79 + $x_offset);
+        $pdf->Write(5, $products[$i]['quantity']);
+        $pdf->SetX(108 + $x_offset);
+        $pdf->Write(5, "₪");
+        $pdf->SetX(95 + $x_offset);
+        $pdf->Write(5,  number_format($products[$i]['price'],2));
+        $pdf->SetX(132 + $x_offset);
+        $pdf->Write(5, "₪");
+        $pdf->SetX(119 + $x_offset);
+        $pdf->Write(5, number_format($products[$i]['price']*$products[$i]['quantity'],2));
     }
+    $pdf->SetFont('freeserifb', '', 13);
+    $pdf->SetXY(98, 172.9);
+    $pdf->Write(5, 'סה"כ');
+    $pdf->SetX(132);
+    $pdf->Write(5, "₪");
+    $pdf->SetX(119);
+    $pdf->Write(5, number_format($total,2));
 
-    $pdf->Output();
-    exit;
-});
+    $pdf->SetXY(98 + $x_offset, 172.9);
+    $pdf->Write(5, 'סה"כ');
+    $pdf->SetX(132 + $x_offset);
+    $pdf->Write(5, "₪");
+    $pdf->SetX(119 + $x_offset);
+    $pdf->Write(5, number_format($total,2));
+}
