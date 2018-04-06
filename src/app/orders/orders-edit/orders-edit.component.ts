@@ -489,7 +489,8 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
       status: this.statuses[0],
       group: this.groups.find(e => client.group_id == e.group_id),
       client: client,
-      supply_time: client.default_time1
+      supply_time: client.default_time1,
+      invoice_number : 0
     }
 
     this.tableData.push(row);
@@ -505,9 +506,7 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
 
     this.gridApi2.setRowData(this.tableData);
   }
-
-
-  
+ 
   deleteRows() {
     this.confirmationService.confirm({
       message: 'האם אתה בטוח שברצונך למחוק שורות?',
@@ -687,6 +686,15 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
           this.order_id = data.order_id;
         });
       }
+    });
+  }
+
+  copyToToday() {
+    this.ordersService.getTodayOrderId().subscribe(data => {
+      this.orderDate = moment(data.orderDate).toDate();
+      this.order_id = data.order_id;
+      this.isNew = true;
+      this.saveOrder(null);
     });
   }
 

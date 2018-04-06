@@ -30,7 +30,12 @@ $app->get('/docs/packinglist/:order_id/:indecies', function ($order_id, $indecie
     //echoResponse(200, var_dump($id)); return;
     $response = array();
     $db = new DbHandler();
-        
+     
+    if (!isAuthenticated()){
+        echoResponse(403, "Not authenticated");
+        return;
+    }
+
     // initiate PDF
     $pdf = new Pdf();
     $pdf->SetMargins(0, 0, 0);    
@@ -53,24 +58,24 @@ $app->get('/docs/packinglist/:order_id/:indecies', function ($order_id, $indecie
         }
         $i++;
     }
-    //echoResponse(200, var_dump($index_ids)); return;
 
     for ($index=0; $index < count($index_ids); $index++){
         createInvoice($pdf, $db, $order_id, $index, $index_ids[$index]);
     }
 
-    $pdf->Output('Invoice'.$order_id.'.pdf','D');
+    $pdf->Output('Invoice '. date("m-d-Y").'.pdf','D');
     exit;
 });
 
 
 function createInvoice(&$pdf, &$db, $order_id, $index, $index_id){
     $x_offset = 150;
+    $group_names = array("א", "ב", "ג", "ד", "ה", "ו", "ז", "ח");
    
     // get external file content
     $date = date("m/d/Y");
 
-    $q = "SELECT DISTINCT c.name client_name, p.name product_name, cp.price, o.invoice_number, op.*
+    $q = "SELECT DISTINCT c.name client_name, p.name product_name, cp.price, o.invoice_number, o.group_id, c.group_order, op.*
     FROM `order_products` op INNER JOIN products p ON op.product_id=p.product_id INNER JOIN orders o ON (op.order_id = o.order_id AND op.index_id = o.index_id)
     INNER JOIN clients c ON c.client_id=o.client_id INNER JOIN client_product_price cp ON (c.client_id=cp.client_id AND p.product_id = cp.product_id)
     WHERE o.index_id=?
@@ -85,6 +90,9 @@ function createInvoice(&$pdf, &$db, $order_id, $index, $index_id){
     $products = array();
     while ($row = $res->fetch_assoc()) {
         $row['product_id'] = (int)$row['product_id'];
+        $row['group_order'] = (int)$row['group_order'];
+        $row['group_id'] = (int)$row['group_id'];
+        $row['group_name'] = "קבוצה " . $group_names[ $row['group_id'] ] . "'";
         $products[] = $row;
     }
 
@@ -99,22 +107,29 @@ function createInvoice(&$pdf, &$db, $order_id, $index, $index_id){
     $pdf->SetFont('freeserifb', '', 16);
     $pdf->SetXY(46, 44.5);
     $pdf->Write(5, $products[0]['invoice_number']);
-    $pdf->SetXY(46 + $x_offset, 44.5);
+    $pdf->SetX(46 + $x_offset);
     $pdf->Write(5,  $products[0]['invoice_number']);
     
     // date
     $pdf->SetFont('freeserif', '', 13);
     $pdf->SetXY(106, 45.5);
     $pdf->Write(5, $date);
-    $pdf->SetXY(106 + $x_offset, 45.5);
+    $pdf->SetX(106 + $x_offset);
     $pdf->Write(5, $date);
 
     //client
     $pdf->SetXY(24, 53);
     $pdf->Write(5, $products[0]['client_name']);
-    $pdf->SetXY(24 + $x_offset, 53);
+    $pdf->SetX(24 + $x_offset);
     $pdf->Write(5, $products[0]['client_name']);
 
+    $pdf->SetFont('freeserif', '', 10);
+    $pdf->SetXY(8, 59);
+    $pdf->Write(5, $products[0]['group_name']. " (" . $products[0]['group_order'].")");
+    $pdf->SetX(8 + $x_offset);
+    $pdf->Write(5, $products[0]['group_name']. " (" . $products[0]['group_order'].")");
+
+    $pdf->SetFont('freeserif', '', 13);
     $total = 0;
     for ($i=0;$i<count($products);$i++){
         $pdf->SetXY(12, 74.5+$i*8.2);

@@ -1,3 +1,0 @@
-Todo:
-☐ Keep the packing number same
-ALTER TABLE `orders` ADD `invoice_number` INT NOT NULL AFTER `supply_time`;

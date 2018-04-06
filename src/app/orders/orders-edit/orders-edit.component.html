@@ -38,6 +38,7 @@
 
     <button class="btn btn-danger mr-2" (click)="deleteRows()" [disabled]="loading" *ngIf="isNew"><i class="fa fa-trash"></i> מחק שורות מסומנות</button>
     <button class="btn btn-secondary mr-2" [disabled]="loading" *ngIf="isNew" (click)="printRows()"><i class="fa fa-print"></i> הדפס תעודות משלוח</button>
+    <button class="btn btn-primary mr-2 mt-3" (click)="copyToToday()" [disabled]="loading" *ngIf="!isNew"><i class="fa fa-save"></i> העתק נתונים לתאריך של היום</button>
     <!-- <button class="btn btn-primary mr-2" (click)="clearTableConfirm()" [disabled]="loading" *ngIf="isNew"><i class="fa fa-save"></i> נקה טבלה</button> -->
   </div>
 </div>
