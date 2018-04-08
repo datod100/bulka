@@ -198,6 +198,7 @@ $app->put('/orders/save', function () use ($app) {
             $r = $db->getRecords($q2);
             $row = $r->fetch_assoc();
             $items[$i]->invoice_number = $row['id'];
+            if ($items[$i]->invoice_number==null) $items[$i]->invoice_number=1;
         }
 
         $q = "INSERT INTO `orders` (`sort_order`, `order_id`, `client_id`, `status_id`, `group_id`, `supply_time`, `invoice_number`) VALUES (?,?,?,?,?,?,?)";

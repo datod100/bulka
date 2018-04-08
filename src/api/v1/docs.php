@@ -70,14 +70,12 @@ $app->get('/docs/packinglist/:order_id/:indecies', function ($order_id, $indecie
 
 function createInvoice(&$pdf, &$db, $order_id, $index, $index_id){
     $x_offset = 150;
-    $group_names = array("א", "ב", "ג", "ד", "ה", "ו", "ז", "ח");
+    $group_names = array("א", "ב", "ג", "ד", "ה", "ו", "ז", "ח","ט","י",'י"א','י"ב');
    
-    // get external file content
-    $date = date("m/d/Y");
-
-    $q = "SELECT DISTINCT c.name client_name, p.name product_name, cp.price, o.invoice_number, o.group_id, c.group_order, op.*
+    $q = "SELECT DISTINCT od.order_date, c.name client_name, p.name product_name, cp.price, o.invoice_number, o.group_id, c.group_order, op.*
     FROM `order_products` op INNER JOIN products p ON op.product_id=p.product_id INNER JOIN orders o ON (op.order_id = o.order_id AND op.index_id = o.index_id)
     INNER JOIN clients c ON c.client_id=o.client_id INNER JOIN client_product_price cp ON (c.client_id=cp.client_id AND p.product_id = cp.product_id)
+    INNER JOIN order_date od ON od.order_id = o.order_id
     WHERE o.index_id=?
     ORDER BY p.sort_order";
 
@@ -92,6 +90,7 @@ function createInvoice(&$pdf, &$db, $order_id, $index, $index_id){
         $row['product_id'] = (int)$row['product_id'];
         $row['group_order'] = (int)$row['group_order'];
         $row['group_id'] = (int)$row['group_id'];
+        $row['order_date'] = date('d/m/Y',strtotime($row['order_date']. ' + 1 day'));
         $row['group_name'] = "קבוצה " . $group_names[ $row['group_id'] ] . "'";
         $products[] = $row;
     }
@@ -113,9 +112,9 @@ function createInvoice(&$pdf, &$db, $order_id, $index, $index_id){
     // date
     $pdf->SetFont('freeserif', '', 13);
     $pdf->SetXY(106, 45.5);
-    $pdf->Write(5, $date);
+    $pdf->Write(5, $products[0]['order_date']);
     $pdf->SetX(106 + $x_offset);
-    $pdf->Write(5, $date);
+    $pdf->Write(5, $products[0]['order_date']);
 
     //client
     $pdf->SetXY(24, 53);
