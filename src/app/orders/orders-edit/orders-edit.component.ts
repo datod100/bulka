@@ -812,9 +812,14 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
       this.alertService.error("אין שורות עם תוכן. אין מה להדפיס");
       return;
     }
-    this.saveWithReload(()=>{  
-        this.docs.getPackingLists(this.order_id, indecies);
-    });
+
+    if (this.isNew){
+      this.saveWithReload(()=>{  
+          this.docs.getPackingLists(this.order_id, indecies);
+      });
+    }else{
+      this.docs.getPackingLists(this.order_id, indecies);
+    }
   }
 
 }
