@@ -46,6 +46,7 @@ import { BalanceReportComponent } from './reports/balance/balance.component';
 import { MomentModule } from 'angular2-moment';
 import {ConfirmDialogModule} from 'primeng/confirmdialog';
 import {ConfirmationService} from 'primeng/api';
+import { NgxSpinnerModule } from 'ngx-spinner';
 
 
 @NgModule({
@@ -65,6 +66,7 @@ import {ConfirmationService} from 'primeng/api';
         BrowserAnimationsModule,  
         MomentModule,
         ConfirmDialogModule,
+        NgxSpinnerModule,
         AgGridModule.withComponents([ListGridComponent, OrdersListGridComponent, AgColorSelectComponent]),
     ],
     declarations: [

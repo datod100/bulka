@@ -11,7 +11,7 @@ import { AgColorSelectComponent } from '../../_helpers/ag-color-select/ag-color-
 import { Price } from '../../_models/price';
 import * as moment from 'moment';
 import { ConfirmationService } from 'primeng/api';
-
+import { NgxSpinnerService } from 'ngx-spinner';
 
 function checkKey(event) {
   let e = <KeyboardEvent>event;
@@ -75,6 +75,7 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
   loading = false;
   maxDate = new Date();
   headerBuilt = false;
+  saving = false;
 
   constructor(private statusesService: StatusesService,
     private route: ActivatedRoute,
@@ -87,6 +88,7 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
     private confirmationService: ConfirmationService,
     private config: NgbDropdownConfig,
     private docs: DocsService,
+    private spinner: NgxSpinnerService,
     private clientService: ClientService) {
 
     moment.locale('en-il');
@@ -262,7 +264,10 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
         }
       }
     ];
+  }
 
+  isEditingAllowed(){
+    
   }
 
   onDateChange(newDate: Date) {
@@ -583,7 +588,8 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
     //this.gridApi.resetRowHeights();
   }
 
-  loadOrder(onComplete:() => void) {
+  loadOrder(onComplete:() => void) {    
+    this.spinner.show();
     this.tableData = [];
     this.headerData = [];
     Observable.forkJoin(
@@ -625,8 +631,12 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
         this.headerTableCalc();
         this.tableCalc();
         if (onComplete!=null) onComplete();
+        this.spinner.hide();
       },
-      err => console.error(err)
+      err => {
+        this.spinner.hide();
+        console.error(err);
+      }
     );
 
   }
@@ -703,6 +713,8 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
   }
 
   saveOrder(onComplete:() => void) {
+    this.saving = true;
+    this.spinner.show();
     this.gridApi.stopEditing(false);
     this.gridApi2.stopEditing(false);
 
@@ -763,11 +775,17 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
         this.ordersService.saveOrderProducts(orderProducts).subscribe(
           data=>{
             this.alertService.success("רשומה עודכנה בהצלחה");
+            this.saving = false;
+            this.spinner.hide();
+            
             if (onComplete!=null) onComplete();
           }
         );
       },
-      err => { }
+      err => { 
+        this.saving = false;
+        this.spinner.hide();
+      }
     );
   }
 
