@@ -278,7 +278,6 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
   }
 
   isEditingAllowed() {
-
   }
 
   onDateChange(newDate: Date) {
@@ -506,6 +505,7 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
   showAddItem(){
     this.displayAddClientDialog = true;
   }
+
   addItem(client: Client) {
     this.displayAddClientDialog=false;
     let row = {
@@ -757,7 +757,7 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
       this.orderDate = moment(data.orderDate).toDate();
       this.order_id = data.order_id;
       this.isNew = true;
-      this.saveOrder(null);
+      //this.saveOrder(null);
     });
   }
 
