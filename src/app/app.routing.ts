@@ -13,15 +13,19 @@ import { OrdersEditComponent } from './orders/orders-edit/orders-edit.component'
 import { EditComponent } from './clients/edit/edit.component';
 import { RefundComponent } from './refund/refund/refund.component';
 import { BalanceReportComponent } from './reports/balance/balance.component';
+import { BrowserComponent } from './browser/browser.component';
 
-const appRoutes: Routes = [
-    { 
+const appRoutes: Routes = [{
+        path: 'browser',
+        component: BrowserComponent
+    },
+    {
         path: 'dashboard',
         component: HomeLayoutComponent,
         canActivate: [AuthGuard],
         children: [
             {
-                path : '',
+                path: '',
                 component: HomeComponent
             }
         ]
@@ -31,119 +35,119 @@ const appRoutes: Routes = [
         component: LoginLayoutComponent,
         children: [
             {
-                path : '',
+                path: '',
                 component: LoginComponent
             }
         ]
 
     },
-    { 
+    {
         path: 'clients',
         canActivate: [AuthGuard],
         component: HomeLayoutComponent,
         children: [
             {
-                path : '',
+                path: '',
                 component: ListComponent
             }
         ]
     }
     ,
-    { 
+    {
         path: 'clients/edit/:id',
         canActivate: [AuthGuard],
         component: HomeLayoutComponent,
         children: [
             {
-                path : '',
+                path: '',
                 component: EditComponent
             }
         ]
     },
-    { 
+    {
         path: 'clients/edit',
         canActivate: [AuthGuard],
         component: HomeLayoutComponent,
         children: [
             {
-                path : '',
+                path: '',
                 component: EditComponent
             }
         ]
     },
-    { 
+    {
         path: 'orders',
         canActivate: [AuthGuard],
         component: HomeLayoutComponent,
         children: [
             {
-                path : '',
+                path: '',
                 component: OrdersListComponent
             }
         ]
     },
-    { 
+    {
         path: 'orders/edit/:id',
         canActivate: [AuthGuard],
         component: HomeLayoutComponent,
         children: [
             {
-                path : '',
+                path: '',
                 component: OrdersEditComponent
             }
         ]
     },
-    { 
+    {
         path: 'orders/edit/:id/:action',
         canActivate: [AuthGuard],
         component: HomeLayoutComponent,
         children: [
             {
-                path : '',
+                path: '',
                 component: OrdersEditComponent
             }
         ]
     },
-    { 
+    {
         path: 'orders/edit',
         canActivate: [AuthGuard],
         component: HomeLayoutComponent,
         children: [
             {
-                path : '',
+                path: '',
                 component: OrdersEditComponent
             }
         ]
     },
-    { 
+    {
         path: 'refund',
         canActivate: [AuthGuard],
         component: HomeLayoutComponent,
         children: [
             {
-                path : '',
+                path: '',
                 component: RefundComponent
             }
         ]
     },
-    { 
+    {
         path: 'reports/balance',
         canActivate: [AuthGuard],
         component: HomeLayoutComponent,
         children: [
             {
-                path : '',
+                path: '',
                 component: BalanceReportComponent
             }
         ]
     },
-    { 
+    {
         path: 'register',
         canActivate: [AuthGuard],
         component: HomeLayoutComponent,
         children: [
             {
-                path : '',
+                path: '',
                 component: RegisterComponent
             }
         ]

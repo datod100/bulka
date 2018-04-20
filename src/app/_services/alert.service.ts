@@ -28,6 +28,12 @@ export class AlertService {
         this.subject.next({ type: 'success', text: message });
     }
 
+    
+    warning(message: string, keepAfterNavigationChange = false) {
+        this.keepAfterNavigationChange = keepAfterNavigationChange;
+        this.subject.next({ type: 'warn', text: message });
+    }
+
     error(message: string, keepAfterNavigationChange = false) {
         this.keepAfterNavigationChange = keepAfterNavigationChange;
         this.subject.next({ type: 'error', text: message });

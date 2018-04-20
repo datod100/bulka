@@ -72,7 +72,7 @@ function createInvoice(&$pdf, &$db, $order_id, $index, $index_id){
     $x_offset = 150;
     $group_names = array("א", "ב", "ג", "ד", "ה", "ו", "ז", "ח","ט","י",'י"א','י"ב');
    
-    $q = "SELECT DISTINCT od.order_date, c.name client_name, p.name product_name, cp.price, o.invoice_number, o.group_id, c.group_order, op.*
+    $q = "SELECT DISTINCT od.order_date, c.name client_name, p.name product_name, cp.price, o.invoice_number, o.group_id,o.supply_time, c.group_order, op.*
     FROM `order_products` op INNER JOIN products p ON op.product_id=p.product_id INNER JOIN orders o ON (op.order_id = o.order_id AND op.index_id = o.index_id)
     INNER JOIN clients c ON c.client_id=o.client_id INNER JOIN client_product_price cp ON (c.client_id=cp.client_id AND p.product_id = cp.product_id)
     INNER JOIN order_date od ON od.order_id = o.order_id
@@ -90,6 +90,7 @@ function createInvoice(&$pdf, &$db, $order_id, $index, $index_id){
         $row['product_id'] = (int)$row['product_id'];
         $row['group_order'] = (int)$row['group_order'];
         $row['group_id'] = (int)$row['group_id'];
+        $row['supply_time'] = substr($row['supply_time'], 0, -3);
         $row['order_date'] = date('d/m/Y',strtotime($row['order_date']. ' + 1 day'));
         $row['group_name'] = "קבוצה " . $group_names[ $row['group_id'] ] . "'";
         $products[] = $row;
@@ -122,6 +123,14 @@ function createInvoice(&$pdf, &$db, $order_id, $index, $index_id){
     $pdf->SetX(24 + $x_offset);
     $pdf->Write(5, $products[0]['client_name']);
 
+    
+    //supply_time
+    $pdf->SetXY(118, 53);
+    $pdf->Write(5, $products[0]['supply_time']);
+    $pdf->SetX(118 + $x_offset);
+    $pdf->Write(5, $products[0]['supply_time']);
+
+
     $pdf->SetFont('freeserif', '', 10);
     $pdf->SetXY(8, 59);
     $pdf->Write(5, $products[0]['group_name']. " (" . $products[0]['group_order'].")");
@@ -139,9 +148,9 @@ function createInvoice(&$pdf, &$db, $order_id, $index, $index_id){
         $pdf->Write(5, "₪");
         $pdf->SetX(95);
         $pdf->Write(5, number_format($products[$i]['price'],2));
-        $pdf->SetX(132);
-        $pdf->Write(5, "₪");
-        $pdf->SetX(119);
+        //$pdf->SetX(132);
+        //$pdf->Write(5, "₪");
+        $pdf->SetX(117);
         $pdf->Write(5, number_format($products[$i]['price']*$products[$i]['quantity'],2));
         $total += $products[$i]['price']*$products[$i]['quantity'];
         
@@ -153,23 +162,23 @@ function createInvoice(&$pdf, &$db, $order_id, $index, $index_id){
         $pdf->Write(5, "₪");
         $pdf->SetX(95 + $x_offset);
         $pdf->Write(5,  number_format($products[$i]['price'],2));
-        $pdf->SetX(132 + $x_offset);
-        $pdf->Write(5, "₪");
-        $pdf->SetX(119 + $x_offset);
+        //$pdf->SetX(132 + $x_offset);
+        //$pdf->Write(5, "₪");
+        $pdf->SetX(117 + $x_offset);
         $pdf->Write(5, number_format($products[$i]['price']*$products[$i]['quantity'],2));
     }
     $pdf->SetFont('freeserifb', '', 13);
     $pdf->SetXY(98, 172.9);
     $pdf->Write(5, 'סה"כ');
-    $pdf->SetX(132);
-    $pdf->Write(5, "₪");
-    $pdf->SetX(119);
+    //$pdf->SetX(132);
+    //$pdf->Write(5, "₪");
+    $pdf->SetX(117);
     $pdf->Write(5, number_format($total,2));
 
     $pdf->SetXY(98 + $x_offset, 172.9);
     $pdf->Write(5, 'סה"כ');
-    $pdf->SetX(132 + $x_offset);
-    $pdf->Write(5, "₪");
-    $pdf->SetX(119 + $x_offset);
+    //$pdf->SetX(132 + $x_offset);
+    //$pdf->Write(5, "₪");
+    $pdf->SetX(117 + $x_offset);
     $pdf->Write(5, number_format($total,2));
 }

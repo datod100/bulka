@@ -37,6 +37,7 @@
     "moment": "^2.22.0",
     "ng2-floating-action-menu": "^2.1.0",
     "ng2-scroll-to-el": "^1.2.1",
+    "ngx-device-detector": "^1.2.2",
     "ngx-spinner": "^1.1.0",
     "popper.js": "^1.14.3",
     "primeng": "^5.2.4",

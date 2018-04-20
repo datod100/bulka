@@ -1,7 +1,8 @@
 ﻿import { Component, OnInit } from '@angular/core';
-
 import { User } from '../_models/index';
 import { UserService } from '../_services/index';
+import { HttpClient } from '@angular/common/http';
+
 
 @Component({
     moduleId: module.id.toString(),
@@ -11,9 +12,13 @@ import { UserService } from '../_services/index';
 export class HomeComponent implements OnInit {
     currentUser: User;
     users: User[] = [];
+    version : string = "0.0";
 
-    constructor(private userService: UserService) {
+    constructor(private userService: UserService, private http: HttpClient) {
         this.currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        this.http.get<string>('assets/version').subscribe(data => {
+            this.version = data;
+        })
     }
 
     ngOnInit() {

@@ -1,5 +1,4 @@
 <?php
-
 // order all summary items
 $app->get('/order/summary/:order_id', function ($order_id) use ($app) {
     //echoResponse(200, var_dump($id)); return;
@@ -25,7 +24,6 @@ $app->get('/order/summary/:order_id', function ($order_id) use ($app) {
     }
     echoResponse(200, $response);
 });
-
 
 // order all order products
 $app->get('/order/products/:order_id', function ($order_id) use ($app) {
@@ -103,6 +101,15 @@ $app->get('/orders/today', function () use ($app) {
     
     
     echoResponse(200, $result);
+});
+
+$app->get('/servertime', function () use ($app) {
+    $db = new DbHandler();
+    if (!isAuthenticated()){
+        echoResponse(403, "Not authenticated");
+        return;
+    }
+    echoResponse(200, date('d/m/Y'));
 });
 
 

@@ -41,6 +41,7 @@ export class BalanceReportComponent implements OnInit {
   maxDate = new Date();
   start_date = new Date();
   end_date = new Date();
+  total = 0;
 
   constructor(
     private route: ActivatedRoute,
@@ -252,7 +253,7 @@ export class BalanceReportComponent implements OnInit {
 
 
   calcTable() {
-
+    this.total=0;
     for (let i = 0; i < this.tableData.length; i = i + 6) {
       let sum = 0;
       for (let k = 0; k < this.products.length; k++) {
@@ -274,6 +275,7 @@ export class BalanceReportComponent implements OnInit {
           sum += colSum;
         }
       }
+      this.total+=sum;
       this.tableData[i + 4].client = new Client();
       this.tableData[i + 4].client.phone = new DecimalPipe('en-US').transform(sum,'1.0-2') +  " ₪";
       this.tableData[i + 4].cellSumStyle = { fontWeight: 'bold',  backgroundColor: '#43dbe2bd'};

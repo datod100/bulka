@@ -206,3 +206,14 @@ p-spinner input{
   color: #28a745;
   border-color: #28a745;
 }
+
+.ui-dialog .ui-dialog-titlebar-close {
+  float:left;
+}
+
+.version{
+  position: absolute;
+  left:15px;
+  bottom:10px;
+  font-size: 10pt;
+}

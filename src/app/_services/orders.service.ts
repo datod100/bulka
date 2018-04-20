@@ -8,6 +8,10 @@ import { Order, OrderItem, OrderSummaryItem } from '../_models/index';
 export class OrdersService {
 
     constructor(private http: HttpClient) { }
+    getServerDate() {
+        return this.http.get<any>(environment.apiUrl + '/servertime', {})
+    }
+
     getAll() {
         return this.http.get<Order[]>(environment.apiUrl + '/orders', {})
     }

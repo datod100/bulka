@@ -1,13 +1,13 @@
-﻿import { NgModule }      from '@angular/core';
+﻿import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-import { FormsModule }    from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 
 // used to create fake backend
 //import { fakeBackendProvider } from './_helpers/index';
 
-import { AppComponent }  from './app.component';
-import { routing }        from './app.routing';
+import { AppComponent } from './app.component';
+import { routing } from './app.routing';
 
 import { AlertComponent } from './_directives/index';
 import { AuthGuard } from './_guards/index';
@@ -21,7 +21,7 @@ import { HomeLayoutComponent } from './layouts/home-layout/home-layout.component
 import { LoginLayoutComponent } from './layouts/login-layout/login-layout.component';
 import { ListComponent } from './clients/list/list.component';
 import { EditComponent } from './clients/edit/edit.component';
-import { NgbModule, NgbDateAdapter, NgbDateParserFormatter} from '@ng-bootstrap/ng-bootstrap';
+import { NgbModule, NgbDateAdapter, NgbDateParserFormatter } from '@ng-bootstrap/ng-bootstrap';
 import { ConfirmationDialogComponent } from './confirmation-dialog/confirmation-dialog.component';
 import { FloatingActionMenuModule } from 'ng2-floating-action-menu';
 import { ActionMenuComponent } from './action-menu/action-menu.component';
@@ -31,9 +31,9 @@ import { OrdersListComponent } from './orders/orders-list/orders-list.component'
 import { OrdersEditComponent } from './orders/orders-edit/orders-edit.component';
 import { ListGridComponent } from './clients/list-grid/list-grid.component';
 import { OrdersListGridComponent } from './orders/orders-list-grid/orders-list-grid.component';
-import { AutoCompleteModule} from 'primeng/autocomplete';
-import { SpinnerModule} from 'primeng/spinner';
-import { GrowlModule} from 'primeng/growl';
+import { AutoCompleteModule } from 'primeng/autocomplete';
+import { SpinnerModule } from 'primeng/spinner';
+import { GrowlModule } from 'primeng/growl';
 import { NgbDateNativeAdapter, NgbDateCustomParserFormatter } from './_providers/date-providers';
 import { OrdersEditItemComponent } from './orders/orders-edit-item/orders-edit-item.component';
 import { ScrollToModule } from 'ng2-scroll-to-el';
@@ -44,10 +44,13 @@ import { CalendarModule } from 'primeng/calendar';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { BalanceReportComponent } from './reports/balance/balance.component';
 import { MomentModule } from 'angular2-moment';
-import {ConfirmDialogModule} from 'primeng/confirmdialog';
-import {ConfirmationService} from 'primeng/api';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { DialogModule } from 'primeng/dialog';
+import { ConfirmationService } from 'primeng/api';
 import { NgxSpinnerModule } from 'ngx-spinner';
-
+import { MessageService } from 'primeng/components/common/messageservice';
+import { DeviceDetectorModule } from 'ngx-device-detector';
+import { BrowserComponent } from './browser/browser.component';
 
 @NgModule({
     imports: [
@@ -63,10 +66,12 @@ import { NgxSpinnerModule } from 'ngx-spinner';
         CalendarModule,
         GrowlModule,
         CalendarModule,
-        BrowserAnimationsModule,  
+        BrowserAnimationsModule,
         MomentModule,
         ConfirmDialogModule,
         NgxSpinnerModule,
+        DialogModule,
+        DeviceDetectorModule.forRoot(),
         AgGridModule.withComponents([ListGridComponent, OrdersListGridComponent, AgColorSelectComponent]),
     ],
     declarations: [
@@ -91,7 +96,8 @@ import { NgxSpinnerModule } from 'ngx-spinner';
         OnlyNumber,
         AgColorSelectComponent,
         RefundComponent,
-        BalanceReportComponent
+        BalanceReportComponent,
+        BrowserComponent
     ],
     providers: [
         AuthGuard,
@@ -107,13 +113,14 @@ import { NgxSpinnerModule } from 'ngx-spinner';
         UserService,
         ConfirmationService,
         DocsService,
+        MessageService,
         {
             provide: HTTP_INTERCEPTORS,
             useClass: JwtInterceptor,
             multi: true
         },
-        {provide: NgbDateAdapter, useClass: NgbDateNativeAdapter},
-        {provide: NgbDateParserFormatter, useClass: NgbDateCustomParserFormatter}
+        { provide: NgbDateAdapter, useClass: NgbDateNativeAdapter },
+        { provide: NgbDateParserFormatter, useClass: NgbDateCustomParserFormatter }
         // provider used to create fake backend
         //fakeBackendProvider
     ],
