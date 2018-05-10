@@ -97,10 +97,42 @@ $app->get('/orders/today', function () use ($app) {
 
     $q= "SELECT order_date, order_id FROM order_date WHERE order_date= date(now())";
     $result = $db->getOneRecord($q);
-    $result["order_id"] = (int)$result["order_id"];
-    
+    $result["order_id"] = (int)$result["order_id"];    
     
     echoResponse(200, $result);
+});
+
+
+//create or get order for specific date
+$app->get('/orders/create/:date', function ($date) use ($app) {
+    $res = json_decode($app->request->getBody());
+    //echoResponse(200,$res );return;
+    $db = new DbHandler();
+    // if (!isAuthenticated()){
+    //     echoResponse(403, "Not authenticated");
+    //     return;
+    // }
+    $q= "INSERT INTO `order_date` (`order_date`)
+    SELECT ? FROM DUAL WHERE NOT EXISTS (
+        SELECT `order_date` FROM order_date WHERE order_date= ?
+    ) LIMIT 1;";
+
+    $stmt = $db->conn->stmt_init();
+    $stmt->prepare($q);
+    $stmt->bind_param('ss',$date, $date);
+    $stmt->execute();
+    $result["order_id"] = $stmt->insert_id;
+
+    $q= "SELECT order_date, order_id FROM order_date WHERE (order_id=? OR order_date=?)";
+    $stmt = $db->conn->stmt_init();
+    $stmt->prepare($q);
+    $stmt->bind_param('ds',$result["order_id"], $date);
+    $stmt->execute();        
+    $result = $stmt->get_result();
+    $row = $result->fetch_assoc();
+    $row["order_id"] = (int)$row["order_id"];    
+    
+    echoResponse(200, $row);
 });
 
 $app->get('/servertime', function () use ($app) {
@@ -112,7 +144,6 @@ $app->get('/servertime', function () use ($app) {
     echoResponse(200, date('d/m/Y'));
 });
 
-
 $app->get('/orders/id/:order_id', function ($order_id) use ($app) {
     $res = json_decode($app->request->getBody());
     $db = new DbHandler();
@@ -121,15 +152,19 @@ $app->get('/orders/id/:order_id', function ($order_id) use ($app) {
         return;
     }
 
-    if ($order_id == 0){
-        $q= "SELECT order_date, order_id FROM order_date WHERE order_date= date(now())";
-        $result = $db->getOneRecord($q);
-        $result["order_id"] = (int)$result["order_id"];
+    if ($order_id != 0){
+        $q= "SELECT order_date, order_id FROM order_date WHERE order_id=? LIMIT 1";
+        $stmt = $db->conn->stmt_init();
+        $stmt->prepare($q);
+        $stmt->bind_param('d',$order_id);
+        $stmt->execute();        
+        $result = $stmt->get_result();
+        $row = $result->fetch_assoc();
+        $row["order_id"] = (int)$row["order_id"];
     }
     
-    echoResponse(200, $result);
+    echoResponse(200, $row);
 });
-
 
 $app->get('/orders/date/:date', function ($date) use ($app) {
     $res = json_decode($app->request->getBody());
@@ -138,8 +173,8 @@ $app->get('/orders/date/:date', function ($date) use ($app) {
         echoResponse(403, "Not authenticated");
         return;
     }
-    $date = substr($date,0,10);
-    $date = date('Y-m-d', strtotime($date. ' + 1 days'));
+    //$date = substr($date,0,10);
+    //$date = date('Y-m-d', strtotime($date. ' + 1 days'));
     
     $q= "SELECT order_date, order_id FROM order_date WHERE order_date=? LIMIT 1";     
     $stmt = $db->conn->stmt_init();
@@ -151,6 +186,28 @@ $app->get('/orders/date/:date', function ($date) use ($app) {
     $row["order_id"] = (int)$row["order_id"];
     
     echoResponse(200, $row);
+});
+
+//get active days
+$app->get('/orders/active_dates/:month/:year', function ($month, $year) use ($app) {
+    //echoResponse(200, var_dump($id)); return;
+    $response = array();
+    $db = new DbHandler();
+    if (!isAuthenticated()){
+        echoResponse(403, "Not authenticated");
+        return;
+    }
+    $q = "SELECT order_date FROM `order_date` WHERE MONTH(order_date)=? AND YEAR(order_date)=?";
+    $stmt = $db->conn->stmt_init();
+    $stmt->prepare($q);
+    $stmt->bind_param('ss',$month,$year);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    while ($row = $result->fetch_assoc()) {
+        $response[] = $row;
+    }
+    echoResponse(200, $response);
 });
 
 //get one order
@@ -218,7 +275,6 @@ $app->put('/orders/save', function () use ($app) {
 
     echoResponse(200, $index_id);
 });
-
 
 //save order products
 $app->put('/order/products/save', function () use ($app) {

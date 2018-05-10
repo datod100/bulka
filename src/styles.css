@@ -217,3 +217,7 @@ p-spinner input{
   bottom:10px;
   font-size: 10pt;
 }
+
+.ui-datepicker td span, .ui-datepicker td a {
+  text-align: center !important;
+}

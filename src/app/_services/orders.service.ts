@@ -1,32 +1,38 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
+import * as moment from 'moment';
 
 import { Order, OrderItem, OrderSummaryItem } from '../_models/index';
 
 @Injectable()
 export class OrdersService {
 
-    constructor(private http: HttpClient) { }
+    constructor(private http: HttpClient) {
+        moment.locale('en-il');
+    }
     getServerDate() {
         return this.http.get<any>(environment.apiUrl + '/servertime', {})
+    }
+
+    getActiveDates(month, year) {
+        return this.http.get<any[]>(environment.apiUrl + '/orders/active_dates/' + month + '/' + year);
     }
 
     getAll() {
         return this.http.get<Order[]>(environment.apiUrl + '/orders', {})
     }
 
-    getTodayOrderId(){
-        return this.http.get<any>(environment.apiUrl + '/orders/today');
+    createOrderId(date: Date) {
+        return this.http.get<any>(environment.apiUrl + '/orders/create/' + moment(date).format('YYYY-MM-DD'));
     }
 
-
-    getOrderById(order_id:number){
-        return this.http.get<any>(environment.apiUrl + '/orders/id/'+order_id);
+    getOrderById(order_id: number) {
+        return this.http.get<any>(environment.apiUrl + '/orders/id/' + order_id);
     }
 
-    getOrderByDate(date:Date){
-        return this.http.get<any>(environment.apiUrl + '/orders/date/'+date.toISOString());
+    getOrderByDate(date: Date) {
+        return this.http.get<any>(environment.apiUrl + '/orders/date/' + moment(date).format('YYYY-MM-DD'));
     }
 
     getByCriteria(criteria) {
