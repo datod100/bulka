@@ -257,14 +257,6 @@ $app->put('/orders/save', function () use ($app) {
     $stmt->execute();
 
     for($i = 0; $i < count($items); ++$i) {
-        if ($items[$i]->invoice_number == 0){
-            $q2 = "SELECT MAX(invoice_number)+1 id FROM orders";
-            $r = $db->getRecords($q2);
-            $row = $r->fetch_assoc();
-            $items[$i]->invoice_number = $row['id'];
-            if ($items[$i]->invoice_number==null) $items[$i]->invoice_number=1;
-        }
-
         $q = "INSERT INTO `orders` (`sort_order`, `order_id`, `client_id`, `status_id`, `group_id`, `supply_time`, `invoice_number`) VALUES (?,?,?,?,?,?,?)";
         $stmt = $db->conn->stmt_init();
         $stmt->prepare($q);
@@ -275,6 +267,28 @@ $app->put('/orders/save', function () use ($app) {
 
     echoResponse(200, $index_id);
 });
+
+$app->get('/orders/update_invoice_number/:index_id', function ($index_id) use ($app) {
+    $response = array();
+    $db = new DbHandler();
+    if (!isAuthenticated()){
+        echoResponse(403, "Not authenticated");
+        return;
+    }
+    $q2 = "SELECT MAX(invoice_number)+1 id FROM orders";
+    $r = $db->getRecords($q2);
+    $row = $r->fetch_assoc();
+    $invoice_number = $row['id'];
+    if ($invoice_number==null) $invoice_number=1;
+
+    $q = "UPDATE `orders` SET `invoice_number`=? WHERE index_id = ?";
+    $stmt = $db->conn->stmt_init();
+    $stmt->prepare($q);
+    $stmt->bind_param('dd',$invoice_number, $index_id);
+    $stmt->execute();
+    echoResponse(200, $invoice_number);
+});
+
 
 //save order products
 $app->put('/order/products/save', function () use ($app) {

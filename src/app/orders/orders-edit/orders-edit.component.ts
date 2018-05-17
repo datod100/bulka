@@ -73,7 +73,7 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
   orderDate: Date;
   orderDisplayDate: Date;
   orderDateNote = "";
-  activeDates :Date[] = [];
+  activeDates: Date[] = [];
   private sub: any;
   index = 0;
   loading = false;
@@ -102,7 +102,7 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
       this.orderDateNote = " - הזמנות עבר";
       this.allowEdit = false;
     }
-    this.onMonthChange({'month':this.orderDate.getMonth()+1, 'year':this.orderDate.getFullYear()});
+    this.onMonthChange({ 'month': this.orderDate.getMonth() + 1, 'year': this.orderDate.getFullYear() });
   }
 
   constructor(private statusesService: StatusesService,
@@ -320,22 +320,22 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
     this.setGridEdit(this.allowEdit);
   }
 
-  onMonthChange(event){
+  onMonthChange(event) {
     this.ordersService.getActiveDates(event.month, event.year).subscribe(
-      data=>{
-        this.activeDates =[];
-        for(let i=0; i<data.length;i++){
+      data => {
+        this.activeDates = [];
+        for (let i = 0; i < data.length; i++) {
           this.activeDates.push(moment(data[i].order_date).toDate());
         }
       }
     );
   }
-  
-  isActive(calendarDate){
+
+  isActive(calendarDate) {
     let date = moment(calendarDate).startOf('day');
-    for(let i=0; i<this.activeDates.length;i++){
+    for (let i = 0; i < this.activeDates.length; i++) {
       let xDate = moment(this.activeDates[i]).startOf('day');
-      if (date.diff(xDate, 'days')==1) return true;
+      if (date.diff(xDate, 'days') == 1) return true;
     }
   }
 
@@ -705,6 +705,7 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
             this.orderLines[i].client = this.clients.find(e => e.client_id == this.orderLines[i].client_id);
             let row = {
               index: this.index++,
+              index_id: this.orderLines[i].index_id,
               status: this.statuses[this.orderLines[i].status_id],
               group: this.groups.find(e => this.orderLines[i].group_id == e.group_id),
               client: this.orderLines[i].client,
@@ -817,84 +818,83 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
     this.gridApi.stopEditing(false);
     this.gridApi2.stopEditing(false);
 
-    if (this.order_id == 0) {
-      this.ordersService.createOrderId(this.orderDate).subscribe(data => {
-        this.orderDate = moment(data.order_date).toDate();
-        this.order_id = data.order_id;
+    // if (this.order_id == 0) {
+    //   this.ordersService.createOrderId(this.orderDate).subscribe(
+    //     data => {
+    //       this.orderDate = moment(data.order_date).toDate();
+    //       this.order_id = data.order_id;
+    //     });
+    // }
 
-        //save summary
-        let summary: OrderSummaryItem[] = [];
-        for (let i = 0; i < this.cycles.length; i++) {
+    //save summary
+    let summary: OrderSummaryItem[] = [];
+    for (let i = 0; i < this.cycles.length; i++) {
+      for (let k = 0; k < this.products.length; k++) {
+        let quantity = +this.headerData[i]["product" + this.products[k].product_id];
+        if (!isNaN(quantity) && quantity != 0) {
+          let item = new OrderSummaryItem();
+          item.cycle_id = this.cycles[i].cycle_id;
+          item.order_id = this.order_id;
+          item.product_id = this.products[k].product_id;
+          item.quantity = quantity;
+          summary.push(item);
+        }
+      }
+    }
+
+    if (summary.length > 0) {
+      this.ordersService.saveSummaryItems(summary).subscribe();
+    }
+
+    //save order lines
+    let orderLines: Order[] = [];
+    for (let i = 0; i < this.tableData.length; i++) {
+      let row = this.gridApi2.getModel().getRow(i).data;
+      let order = new Order();
+      order.client_id = row.client.client_id;
+      order.group_id = row.group.group_id;
+      order.index_id = row.index_id;
+      order.order_id = this.order_id;
+      order.sort_order = i;
+      order.status_id = this.statuses.findIndex(e => e == row.status);
+      order.supply_time = row.supply_time;
+      order.invoice_number = row.invoice_number;
+      orderLines.push(order);
+    }
+
+    this.ordersService.saveOrderLines(orderLines).subscribe(
+      data => {
+        let index_id = data;
+
+        let orderProducts: OrderItem[] = [];
+        for (let i = 0; i < this.tableData.length; i++) {
           for (let k = 0; k < this.products.length; k++) {
-            let quantity = +this.headerData[i]["product" + this.products[k].product_id];
+            let quantity = +this.tableData[i]["product" + this.products[k].product_id];
             if (!isNaN(quantity) && quantity != 0) {
-              let item = new OrderSummaryItem();
-              item.cycle_id = this.cycles[i].cycle_id;
+              let item = new OrderItem();
+              item.index_id = index_id[i];
               item.order_id = this.order_id;
               item.product_id = this.products[k].product_id;
               item.quantity = quantity;
-              summary.push(item);
+              orderProducts.push(item);
             }
           }
         }
-
-        if (summary.length > 0) {
-          this.ordersService.saveSummaryItems(summary).subscribe();
-        }
-
-        //save order lines
-        let orderLines: Order[] = [];
-        for (let i = 0; i < this.tableData.length; i++) {
-          let row = this.gridApi2.getModel().getRow(i).data;
-          let order = new Order();
-          order.client_id = row.client.client_id;
-          order.group_id = row.group.group_id;
-          order.index_id = row.index_id;
-          order.order_id = this.order_id;
-          order.sort_order = i;
-          order.status_id = this.statuses.findIndex(e => e == row.status);
-          order.supply_time = row.supply_time;
-          order.invoice_number = row.invoice_number;
-          orderLines.push(order);
-        }
-
-        this.ordersService.saveOrderLines(orderLines).subscribe(
+        this.ordersService.saveOrderProducts(orderProducts).subscribe(
           data => {
-            let index_id = data;
-
-            let orderProducts: OrderItem[] = [];
-            for (let i = 0; i < this.tableData.length; i++) {
-              for (let k = 0; k < this.products.length; k++) {
-                let quantity = +this.tableData[i]["product" + this.products[k].product_id];
-                if (!isNaN(quantity) && quantity != 0) {
-                  let item = new OrderItem();
-                  item.index_id = index_id[i];
-                  item.order_id = this.order_id;
-                  item.product_id = this.products[k].product_id;
-                  item.quantity = quantity;
-                  orderProducts.push(item);
-                }
-              }
-            }
-            this.ordersService.saveOrderProducts(orderProducts).subscribe(
-              data => {
-                this.alertService.success("רשומה עודכנה בהצלחה");
-                this.saving = false;
-                this.spinner.hide();
-
-                if (onComplete != null) onComplete();
-              }
-            );
-          },
-          err => {
+            this.alertService.success("רשומה עודכנה בהצלחה");
             this.saving = false;
             this.spinner.hide();
+
+            if (onComplete != null) onComplete();
           }
         );
-
+      },
+      err => {
+        this.saving = false;
+        this.spinner.hide();
       }
-      );
-    }
+    );
   }
 
   saveWithReload(onComplete: () => void) {
@@ -922,14 +922,14 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
       this.alertService.error("נא לסמן שורות לפני ההדפסה");
       return;
     }
-    let indecies: number[] = [];
+    let indecies: { index, index_id, invoice }[] = [];
 
     for (let i = 0; i < this.tableData.length; i++) {
       if (this.isLineHasProducts(i)) {
         let row: any = this.gridApi2.getModel().getRow(i);
         if (row.selected) {
           row.data.status = this.statuses[1];
-          indecies.push(i);
+          indecies.push({ index: i, index_id: row.data.index_id, invoice: row.data.invoice_number });
         }
       }
     }
@@ -939,13 +939,38 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (this.allowEdit) {
-      this.saveWithReload(() => {
-        this.docs.getPackingLists(this.order_id, indecies);
-      });
-    } else {
-      this.docs.getPackingLists(this.order_id, indecies);
+    var complete = 0;
+    for (let i = 0; i < indecies.length; i++) {
+      let row: any = this.gridApi2.getModel().getRow(indecies[i].index);
+
+      if (row.data.invoice_number == 0) {
+        this.ordersService.updateInvoice(indecies[i].index_id).subscribe(
+          invoice_number => {
+            this.tableData[indecies[i].index].invoice_number  = invoice_number;
+            //row.data.invoice_number = invoice_number;
+            complete++;
+            if (complete == indecies.length) {
+              this.completePrint(indecies);
+            }
+          }
+        );
+      }else{        
+        complete++;
+        if (complete == indecies.length) {
+          this.completePrint(indecies);
+        }
+      }
     }
   }
 
+
+  completePrint(indecies){
+    if (this.allowEdit) {
+      this.saveWithReload(() => {
+        this.docs.getPackingLists(this.order_id, indecies.map(a => a.index));
+      });
+    } else {
+      this.docs.getPackingLists(this.order_id, indecies.map(a => a.index));
+    }
+  }
 }

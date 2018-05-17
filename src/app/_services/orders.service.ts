@@ -58,4 +58,8 @@ export class OrdersService {
     saveOrderProducts(orderProducts: OrderItem[]) {
         return this.http.put(environment.apiUrl + '/order/products/save', orderProducts);
     }
+
+    updateInvoice(index_id: number) {
+        return this.http.get<any>(environment.apiUrl + '/orders/update_invoice_number/' + index_id);
+    }
 }

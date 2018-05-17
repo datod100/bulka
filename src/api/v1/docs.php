@@ -67,7 +67,6 @@ $app->get('/docs/packinglist/:order_id/:indecies', function ($order_id, $indecie
     exit;
 });
 
-
 function createInvoice(&$pdf, &$db, $order_id, $index, $index_id){
     $x_offset = 150;
     $group_names = array("א", "ב", "ג", "ד", "ה", "ו", "ז", "ח","ט","י",'י"א','י"ב');
@@ -93,6 +92,7 @@ function createInvoice(&$pdf, &$db, $order_id, $index, $index_id){
         $row['supply_time'] = substr($row['supply_time'], 0, -3);
         $row['order_date'] = date('d/m/Y',strtotime($row['order_date']. ' + 1 day'));
         $row['group_name'] = "קבוצה " . $group_names[ $row['group_id'] ] . "'";
+        $row['invoice_number'] = (int)$row['invoice_number'];
         $products[] = $row;
     }
 
