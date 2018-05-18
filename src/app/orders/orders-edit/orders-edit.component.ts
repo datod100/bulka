@@ -98,7 +98,10 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
     } else if (diff < 0) {
       this.orderDateNote = " - הזמנות עתידיות";
       this.allowEdit = true;
-    } else if (diff > 0) {
+    } else if (diff > 0 && diff<=1) {
+      this.orderDateNote = " - היום";
+      this.allowEdit = true;
+    } else if (diff > 1) {
       this.orderDateNote = " - הזמנות עבר";
       this.allowEdit = false;
     }
@@ -916,7 +919,7 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
     return false;
   }
 
-  printRows() {
+  printRows() {    
     let rows = this.gridApi2.getSelectedRows();
     if (rows.length == 0) {
       this.alertService.error("נא לסמן שורות לפני ההדפסה");
@@ -939,38 +942,46 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
       return;
     }
 
-    var complete = 0;
-    for (let i = 0; i < indecies.length; i++) {
-      let row: any = this.gridApi2.getModel().getRow(indecies[i].index);
+    this.saveWithReload(() => {
+      for (let i = 0; i < indecies.length; i++) {
+          let row: any = this.gridApi2.getModel().getRow(indecies[i].index);
+          indecies[i].index_id = row.data.index_id;
+          indecies[i].invoice = row.data.invoice_number;
+      }
 
-      if (row.data.invoice_number == 0) {
-        this.ordersService.updateInvoice(indecies[i].index_id).subscribe(
-          invoice_number => {
-            this.tableData[indecies[i].index].invoice_number  = invoice_number;
-            //row.data.invoice_number = invoice_number;
-            complete++;
-            if (complete == indecies.length) {
-              this.completePrint(indecies);
+      var complete = 0;
+      for (let i = 0; i < indecies.length; i++) {
+        let row: any = this.gridApi2.getModel().getRow(indecies[i].index);
+
+        if (row.data.invoice_number == 0) {
+          this.ordersService.updateInvoice(indecies[i].index_id).subscribe(
+            data => {
+              this.tableData.find(x => (x.index_id == data.index_id)).invoice_number = data.invoice_number;
+              //row.data.invoice_number = invoice_number;
+              complete++;
+              if (complete == indecies.length) {
+                this.completePrint(indecies);
+              }
             }
+          );
+        } else {
+          complete++;
+          if (complete == indecies.length) {
+            this.completePrint(indecies);
           }
-        );
-      }else{        
-        complete++;
-        if (complete == indecies.length) {
-          this.completePrint(indecies);
         }
       }
-    }
+    });
   }
 
 
-  completePrint(indecies){
-    if (this.allowEdit) {
-      this.saveWithReload(() => {
-        this.docs.getPackingLists(this.order_id, indecies.map(a => a.index));
-      });
-    } else {
+  completePrint(indecies) {
+    // if (this.allowEdit) {
+    //   this.saveWithReload(() => {
+    //     this.docs.getPackingLists(this.order_id, indecies.map(a => a.index));
+    //   });
+    // } else {
       this.docs.getPackingLists(this.order_id, indecies.map(a => a.index));
-    }
+    //}
   }
 }

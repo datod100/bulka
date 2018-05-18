@@ -286,7 +286,10 @@ $app->get('/orders/update_invoice_number/:index_id', function ($index_id) use ($
     $stmt->prepare($q);
     $stmt->bind_param('dd',$invoice_number, $index_id);
     $stmt->execute();
-    echoResponse(200, $invoice_number);
+    $response['invoice_number'] = $invoice_number;
+    $response['index_id'] = $index_id;
+
+    echoResponse(200, $response);
 });
 
 
