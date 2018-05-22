@@ -334,7 +334,7 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
         }
       }
     );
-    this.setGridEdit(this.allowEdit);
+    //this.setGridEdit(this.allowEdit);
   }
 
   onMonthChange(event) {
@@ -931,12 +931,27 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
   }
 
   saveWithReload(onComplete: () => void) {
-    this.saveOrder(() => {
-      this.clearTable();
-      this.loadOrder(() => {
-        if (onComplete != null) onComplete();
+    if (this.order_id == 0) {
+      this.ordersService.createOrderId(this.orderDate).subscribe(
+        data => {
+          this.orderDate = moment(data.order_date).toDate();
+          this.order_id = data.order_id;
+
+          this.saveOrder(() => {
+            this.clearTable();
+            this.loadOrder(() => {
+              if (onComplete != null) onComplete();
+            });
+          });
+        });
+    }else{
+      this.saveOrder(() => {
+        this.clearTable();
+        this.loadOrder(() => {
+          if (onComplete != null) onComplete();
+        });
       });
-    });
+    }    
   }
 
   isLineHasProducts(index) {

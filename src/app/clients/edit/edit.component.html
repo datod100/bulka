@@ -88,10 +88,10 @@
         <div class="input-group mb-2">
           <div class="input-group-prepend">
             <div class="input-group-text fixed-width">
-              עדיפות בקבוצה
+              עדיפות בקבוצה <span style="color:red">*</span>
             </div>
           </div>
-          <input type="text" class="form-control" [(ngModel)]="client.group_order" OnlyNumber="true" id="group_order" name="group_order">
+          <input type="text" class="form-control" [(ngModel)]="client.group_order" [ngClass]="{'border border-danger': editClient.controls.group_order?.invalid}" OnlyNumber="true" id="group_order" name="group_order" required>
         </div>
 
         <h5 class="mb-3">שעות הספקה</h5>
