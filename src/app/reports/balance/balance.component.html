@@ -1,9 +1,9 @@
 <div class="center-block">
   <div class="center-block" style="display: table">
     <h3 class="d-inline-block pr-5"> מאזן מתאריך :</h3>
-    <p-calendar [(ngModel)]="start_date" showButtonBar="true" [showIcon]="true" [maxDate]="maxDate" [ngStyle]="{direction: 'ltr'}" dateFormat="dd/mm/yy" readonlyInput="true" (onSelect0)="onDateChange($event)"></p-calendar>
+    <p-calendar [(ngModel)]="StartDate" showButtonBar="true" [showIcon]="true" [ngStyle]="{direction: 'ltr'}" dateFormat="dd/mm/yy" readonlyInput="true" (onSelect0)="onDateChange($event)"></p-calendar>
     <h3 class="d-inline-block pr-5"> עד :</h3>
-    <p-calendar [(ngModel)]="end_date" showButtonBar="true" [showIcon]="true" [maxDate]="maxDate" [ngStyle]="{direction: 'ltr'}" dateFormat="dd/mm/yy" readonlyInput="true" (onSelect)="onDateChange($event)"></p-calendar>
+    <p-calendar [(ngModel)]="EndDate" showButtonBar="true" [showIcon]="true" [ngStyle]="{direction: 'ltr'}" dateFormat="dd/mm/yy" readonlyInput="true" (onSelect)="onDateChange($event)"></p-calendar>
     <button class="btn btn-primary ml-2" (click)="loadData()" [disabled]="loading || end_date<start_date"><i class="fa fa-search"></i> הצג נתונים</button>
     <img *ngIf="loading" src="data:image/gif;base64,R0lGODlhEAAQAPIAAP///wAAAMLCwkJCQgAAAGJiYoKCgpKSkiH/C05FVFNDQVBFMi4wAwEAAAAh/hpDcmVhdGVkIHdpdGggYWpheGxvYWQuaW5mbwAh+QQJCgAAACwAAAAAEAAQAAADMwi63P4wyklrE2MIOggZnAdOmGYJRbExwroUmcG2LmDEwnHQLVsYOd2mBzkYDAdKa+dIAAAh+QQJCgAAACwAAAAAEAAQAAADNAi63P5OjCEgG4QMu7DmikRxQlFUYDEZIGBMRVsaqHwctXXf7WEYB4Ag1xjihkMZsiUkKhIAIfkECQoAAAAsAAAAABAAEAAAAzYIujIjK8pByJDMlFYvBoVjHA70GU7xSUJhmKtwHPAKzLO9HMaoKwJZ7Rf8AYPDDzKpZBqfvwQAIfkECQoAAAAsAAAAABAAEAAAAzMIumIlK8oyhpHsnFZfhYumCYUhDAQxRIdhHBGqRoKw0R8DYlJd8z0fMDgsGo/IpHI5TAAAIfkECQoAAAAsAAAAABAAEAAAAzIIunInK0rnZBTwGPNMgQwmdsNgXGJUlIWEuR5oWUIpz8pAEAMe6TwfwyYsGo/IpFKSAAAh+QQJCgAAACwAAAAAEAAQAAADMwi6IMKQORfjdOe82p4wGccc4CEuQradylesojEMBgsUc2G7sDX3lQGBMLAJibufbSlKAAAh+QQJCgAAACwAAAAAEAAQAAADMgi63P7wCRHZnFVdmgHu2nFwlWCI3WGc3TSWhUFGxTAUkGCbtgENBMJAEJsxgMLWzpEAACH5BAkKAAAALAAAAAAQABAAAAMyCLrc/jDKSatlQtScKdceCAjDII7HcQ4EMTCpyrCuUBjCYRgHVtqlAiB1YhiCnlsRkAAAOwAAAAAAAAAAAA=="/>
 

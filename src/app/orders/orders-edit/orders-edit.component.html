@@ -1,11 +1,11 @@
 <div class="center-block" style="overflow-x: auto;">
-  <div class="center-block" style="display: table">
+  <div class="center-block" style="display: table; height:100%">
     <div class="center">
       <h3 class="d-inline-block pr-5"> סיכום הזמנות לתאריך משלוח : </h3>
       <p-calendar [(ngModel)]="OrderDisplayDate" [showIcon]="true" [ngStyle]="{direction: 'ltr'}"
         dateFormat="dd/mm/yy" readonlyInput="true" (onSelect)="onDateChange($event)" (onMonthChange)="onMonthChange($event)">
         <ng-template pTemplate="date" let-date>
-          <span [ngStyle]="{backgroundColor: isActive(date) ? '#7cc67c' : 'inherit'}" style="border-radius:50%">{{date.day}}</span>
+          <span [ngStyle]="{backgroundColor: colorDate(date)}" style="border-radius:50%">{{date.day}}</span>
         </ng-template>
       </p-calendar>
       <h3 class="d-inline-block pl-2">{{orderDateNote}}</h3>
@@ -18,11 +18,13 @@
     </div>
 
     <h3>פירוט הזמנות</h3>
-    <ag-grid-angular dir="ltr" class="ag-theme-fresh" [ngStyle]="tableStyle" [columnDefs]="columnDefs2" [context]="context" [gridOptions]="gridOptions2"
-      (gridReady)="onGridReady2($event)" [defaultColDef]="defaultColDef2" [enterMovesDownAfterEdit]="true" [enableRtl]="true"
-      [animateRows]="true" [suppressRowClickSelection]="true" [suppressMovableColumns]="true" [rowSelection]="rowSelection"
-      [enableSorting]="false" [enableFilter]="false" [rowDragManaged]="false" (cellValueChanged)="tableCellValueChanged($event)">
-    </ag-grid-angular>
+    <div [ngStyle]="tableStyle">
+      <ag-grid-angular dir="ltr" style="width: 100%; height: 100%" class="ag-theme-fresh" [columnDefs]="columnDefs2" [context]="context" [gridOptions]="gridOptions2"
+        (gridReady)="onGridReady2($event)" [defaultColDef]="defaultColDef2" [enterMovesDownAfterEdit]="true" [enableRtl]="true"
+        [animateRows]="true" [suppressRowClickSelection]="true" [suppressMovableColumns]="true" [rowSelection]="rowSelection"
+        [enableSorting]="false" [enableFilter]="false" [rowDragManaged]="false" (cellValueChanged)="tableCellValueChanged($event)">
+      </ag-grid-angular>
+    </div>
   </div>
 </div>
 

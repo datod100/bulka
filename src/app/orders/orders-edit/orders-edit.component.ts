@@ -136,7 +136,7 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
         agColorSelect: AgColorSelectComponent
       }
     };
-    this.gridOptions2.domLayout = 'autoHeight'
+    //this.gridOptions2.domLayout = 'autoHeight'
     this.context = { componentParent: this };
 
     this.columnDefs = [
@@ -291,13 +291,27 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
         headerName: "שעת אספקה", field: "supply_time", width: 80, cellClass: "center", editable: true,
         headerClass: "header-cell",
         cellStyle: function (params) {
-          let style = { backgroundColor: "" };
+          let style = { backgroundColor: "", fontWeight:'inherit' };
           if (params.data.cellStyle) {
             style += Object.assign(style, params.data.cellStyle);
           }
           if (params.data.colorRow) {
             style.backgroundColor = "#97d2fb";
           }
+
+          let isDifferent = true;
+          if (params.data.client.default_time1 == params.value){
+            isDifferent = false;
+          }else if(params.data.client.default_time2 == params.value){
+            isDifferent = false;
+          }else if(params.data.client.default_time3 == params.value){
+            isDifferent = false;
+          }
+
+          if (isDifferent){
+            style.fontWeight='bold';
+          }
+
           return style;
         }
       }
@@ -334,12 +348,22 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
     );
   }
 
-  isActive(calendarDate) {
+  colorDate(calendarDate) {
     let date = moment(calendarDate).startOf('day');
     for (let i = 0; i < this.activeDates.length; i++) {
       let xDate = moment(this.activeDates[i]).startOf('day');
-      if (date.diff(xDate, 'days') == 1) return true;
+      if (date.diff(xDate, 'days') == 1){
+        let compare = date.diff(moment().add(-1, 'days').startOf('day'), 'days');
+        if (compare == 1){ // today
+          return '#60d4f7';
+        }else if (compare > 1){
+          return '#fbc13f';
+        }else if (compare < 1){
+          return '#7cc67c';
+        }
+      }
     }
+    return 'inherit';
   }
 
   setGridEdit(state: Boolean) {
@@ -758,6 +782,7 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
 
   calcGridWidth() {
     let screenWidth = window.outerWidth;
+    let screenHeight = window.outerHeight;
 
     let newWidth = 0;
     for (let i = 0; i < this.columnDefs.length; i++) {
@@ -772,9 +797,12 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
     for (let i = 0; i < this.columnDefs2.length; i++) {
       newWidth += this.columnDefs2[i].width;
     }
-    newWidth += 2;
+    newWidth += 20;
     //this.tableStyle = { width: ((newWidth > screenWidth) ? screenWidth - 50 : newWidth) + 'px' };
-    this.tableStyle = { width: newWidth + 'px' };
+    let newHeight = screenHeight - 505;
+    this.tableStyle = { width: newWidth + 'px', height: newHeight + 'px',
+    boxSizing: 'border-box' };
+    
     this.gridApi2.doLayout();
   }
 
@@ -783,9 +811,11 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
       this.order_id = +params['id'];
       var action = params['action'];
       if (isNaN(this.order_id)) {
-        this.ordersService.createOrderId(new Date()).subscribe(data => { //today
+        let today = moment().startOf('day').add(-1, 'days').toDate(); //today
+        this.ordersService.createOrderId(today).subscribe(data => {
           this.orderDate = moment(data.order_date).toDate();
           this.order_id = data.order_id;
+          this.OrderDisplayDate = moment(this.orderDate).add(1, 'days').toDate();
         }
         );
       } else {
@@ -793,13 +823,13 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
           data => {
             this.orderDate = moment(data.order_date).toDate();
             this.order_id = data.order_id;
+            this.OrderDisplayDate = moment(this.orderDate).add(1, 'days').toDate();
           },
           err => {
             this.alertService.error(err.error);
           });
       }
 
-      this.OrderDisplayDate = moment(this.orderDate).add(1, 'days').toDate();
     });
   }
 

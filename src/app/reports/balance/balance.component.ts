@@ -10,6 +10,7 @@ import { GridOptions, SelectCellEditor } from "ag-grid/main";
 import { AgColorSelectComponent } from '../../_helpers/ag-color-select/ag-color-select.component';
 import { isArray } from 'util';
 import { DatePipe, DecimalPipe } from '@angular/common';
+import * as moment from 'moment';
 
 function precisionRound(number, precision) {
   var factor = Math.pow(10, precision);
@@ -38,10 +39,30 @@ export class BalanceReportComponent implements OnInit {
   refundLines: RefundItem[];
   isNew = false;
   loading = false;
-  maxDate = new Date();
-  start_date = new Date();
-  end_date = new Date();
+  start_date:Date;  
+  startDisplayDate: Date;
+  end_date:Date;
+  endDisplayDate: Date;
   total = 0;
+
+
+  public set StartDate(newDate:Date){
+    this.startDisplayDate = newDate;
+    this.start_date = moment(newDate).subtract(1, 'days').toDate();
+  }
+
+  public get StartDate(): Date {
+    return this.startDisplayDate;
+  }
+
+  public set EndDate(newDate:Date){
+    this.endDisplayDate = newDate;
+    this.end_date = moment(newDate).subtract(1, 'days').toDate();
+  }
+  
+  public get EndDate(): Date {
+    return this.endDisplayDate;
+  }
 
   constructor(
     private route: ActivatedRoute,
@@ -52,15 +73,15 @@ export class BalanceReportComponent implements OnInit {
     private clientService: ClientService,
     private reportsService: ReportsService) {
 
+    moment.locale('en-il');
 
-    this.start_date = new Date();
-    this.start_date.setDate(this.start_date.getDate() - 7);
+    this.EndDate = moment().startOf('day').toDate();
+    this.StartDate = moment().startOf('day').subtract(7, 'days').toDate();
 
     this.gridOptions = <GridOptions>{};
     this.gridOptions.domLayout = 'autoHeight'
     this.rowSelection = "multiple";
     this.context = { componentParent: this };
-    this.maxDate.setHours(0, 0, 0, 0);
     this.gridOptions.getRowStyle = function (params) {
       if (params.data.delimiter) {
         return { backgroundColor: 'darkgrey !important' };
@@ -105,11 +126,6 @@ export class BalanceReportComponent implements OnInit {
         }
       }
     ];
-  }
-
-  formatDate(unfDate) {
-    const [y, m, d] = unfDate.split('-').map((val: string) => +val);
-    return new Date(y, m - 1, d);
   }
 
   ngOnInit() {

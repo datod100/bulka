@@ -16,9 +16,6 @@ export class HomeComponent implements OnInit {
 
     constructor(private userService: UserService, private http: HttpClient) {
         this.currentUser = JSON.parse(localStorage.getItem('currentUser'));
-        this.http.get<string>('assets/version').subscribe(data => {
-            this.version = data;
-        })
     }
 
     ngOnInit() {
