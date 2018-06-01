@@ -1,12 +1,19 @@
-<div class="default-width center-block" style="max-width: 700px;">
-<h3 class="mb-3">לקוחות</h3>
-<ag-grid-angular class="ag-theme-fresh center-block" [rowData]="clients" [columnDefs]="columnDefs"
-[context]="context" (gridSizeChanged)="onGridSizeChanged($event)" 
-    [frameworkComponents]="frameworkComponents"
-    [enableRtl]="true"
-  [gridOptions]="gridOptions" (gridReady)="onGridReady($event)">
-</ag-grid-angular>
+<div class="center-block" style="width: 100%;" [ngStyle]="tableStyle">
+  <h3 class="mb-3">לקוחות</h3>
+  <div class="mb-2 no-print">
+    <button class="btn btn-sm btn-primary mr-2" (click)="print()">
+      <i class="fa fa-print"></i> הדפס</button>
+  </div>
+  <ag-grid-angular style="height: 100%" class="ag-theme-fresh center-block" [rowData]="clients" [columnDefs]="columnDefs" [domLayout]="domLayout"
+    [context]="context" (gridSizeChanged)="onGridSizeChanged($event)" [frameworkComponents]="frameworkComponents" [enableRtl]="true"
+    [gridOptions]="gridOptions" (gridReady)="onGridReady($event)">
+  </ag-grid-angular>
 
-<app-action-menu [routerLink]="['/clients/edit']"></app-action-menu>
-<br><br><br><br><br><br>
+  <app-action-menu [routerLink]="['/clients/edit']" class="no-print"></app-action-menu>
+  <br>
+  <br>
+  <br>
+  <br>
+  <br>
+  <br>
 </div>

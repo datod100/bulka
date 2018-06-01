@@ -66,6 +66,25 @@
         <div class="input-group mb-2">
           <div class="input-group-prepend">
             <div class="input-group-text fixed-width">
+              איש קשר לתשלום
+            </div>
+          </div>
+          <input type="text" class="form-control" [(ngModel)]="client.payment_person" id="payment_person" name="payment_person">
+        </div>
+
+        <div class="input-group mb-2">
+          <div class="input-group-prepend">
+            <div class="input-group-text fixed-width">
+              טלפון לתשלום
+            </div>
+          </div>
+          <input type="text" class="form-control" [(ngModel)]="client.payment_phone" id="payment_phone" name="payment_phone" pattern="^0\d([\d]{0,1})([-]{0,1})\d{7}$"
+          [ngClass]="{'border border-danger': editClient.controls.payment_phone?.invalid}">
+        </div>
+
+        <div class="input-group mb-2">
+          <div class="input-group-prepend">
+            <div class="input-group-text fixed-width">
               משך נסיעה
             </div>
           </div>

@@ -29,24 +29,28 @@ export class BalanceReportComponent implements OnInit {
   private context;
   private gridApi: GridApi;
   tableData = [];
+  filteredTableData = [];
   products = [];
   tableStyle;
   statuses: string[] = [];
   rowSelection;
   public clients: Client[] = [];
+  public active_clients: Client[] = [];
   refund_id;
   refund = { refund_id: 0, refund_date: null };
   refundLines: RefundItem[];
   isNew = false;
   loading = false;
-  start_date:Date;  
+  start_date: Date;
   startDisplayDate: Date;
-  end_date:Date;
+  end_date: Date;
   endDisplayDate: Date;
   total = 0;
+  displayTotal = 0;
+  displayAddClientDialog = false;
 
 
-  public set StartDate(newDate:Date){
+  public set StartDate(newDate: Date) {
     this.startDisplayDate = newDate;
     this.start_date = moment(newDate).subtract(1, 'days').toDate();
   }
@@ -55,11 +59,11 @@ export class BalanceReportComponent implements OnInit {
     return this.startDisplayDate;
   }
 
-  public set EndDate(newDate:Date){
+  public set EndDate(newDate: Date) {
     this.endDisplayDate = newDate;
     this.end_date = moment(newDate).subtract(1, 'days').toDate();
   }
-  
+
   public get EndDate(): Date {
     return this.endDisplayDate;
   }
@@ -119,7 +123,7 @@ export class BalanceReportComponent implements OnInit {
         }
       },
       {
-        headerName: "טלפון", field: "client.phone", width: 110, editable: false, cellClass:'center', cellStyle: (params) => {
+        headerName: "טלפון", field: "client.phone", width: 110, editable: false, cellClass: 'center', cellStyle: (params) => {
           if (!params.data.delimiter) {
             return Object.assign({ backgroundColor: '#f6f6f6' }, params.data.cellStyle, params.data.cellSumStyle);
           }
@@ -129,6 +133,7 @@ export class BalanceReportComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.loading = true;
   }
 
   onGridReady(params) {
@@ -178,7 +183,7 @@ export class BalanceReportComponent implements OnInit {
         for (let k = 0; k < orders.length; k++) {
           for (let i = 0; i < this.tableData.length; i++) {
             if (this.tableData[i].type == 'נשלח') {
-              if (this.tableData[i-1].client && this.tableData[i-1].client.client_id == orders[k].client_id) {
+              if (this.tableData[i - 1].client && this.tableData[i - 1].client.client_id == orders[k].client_id) {
                 this.tableData[i]['product' + orders[k].product_id] = orders[k].total_quantity
               }
             }
@@ -188,7 +193,7 @@ export class BalanceReportComponent implements OnInit {
         for (let k = 0; k < refunds.length; k++) {
           for (let i = 0; i < this.tableData.length; i++) {
             if (this.tableData[i].type == 'זיכוי') {
-              if (this.tableData[i-2].client && this.tableData[i-2].client.client_id == refunds[k].client_id) {
+              if (this.tableData[i - 2].client && this.tableData[i - 2].client.client_id == refunds[k].client_id) {
                 this.tableData[i]['product' + refunds[k].product_id] = refunds[k].total_quantity
               }
             }
@@ -216,14 +221,14 @@ export class BalanceReportComponent implements OnInit {
         headerName: this.products[k].name,
         headerClass: "header-cell",
         field: "product" + this.products[k].product_id,
-        cellStyle: (params) => { 
+        cellStyle: (params) => {
           return params.data.cellStyle
         },
-        cellClass:"center",
+        cellClass: "center",
         valueFormatter: (params) => {
           if (params.value) {
             if (params.data.formatter) {
-              return precisionRound(params.value,2) + params.data.formatter;
+              return precisionRound(params.value, 2) + params.data.formatter;
             }
           }
           return params.value;
@@ -233,7 +238,7 @@ export class BalanceReportComponent implements OnInit {
     }
 
     for (let i = 0; i < this.clients.length; i++) {
-      this.tableData.push({ type: 'לקוח', client: this.clients[i], cellStyle: { backgroundColor:'white' } });
+      this.tableData.push({ type: 'לקוח', client: this.clients[i], cellStyle: { backgroundColor: 'white' } });
       this.tableData.push({ type: 'נשלח' });
       this.tableData.push({ type: 'זיכוי' });
       this.tableData.push({ type: 'סה"כ מוצרים', cellStyle: { fontWeight: 'bold', direction: 'ltr' } });
@@ -269,15 +274,15 @@ export class BalanceReportComponent implements OnInit {
 
 
   calcTable() {
-    this.total=0;
+    this.total = 0;
     for (let i = 0; i < this.tableData.length; i = i + 6) {
       let sum = 0;
       for (let k = 0; k < this.products.length; k++) {
         let prop = 'product' + this.products[k].product_id;
         let order = 0;
         let refund = 0;
-        if (prop in this.tableData[i+1]) {
-          order = this.tableData[i+1][prop];
+        if (prop in this.tableData[i + 1]) {
+          order = this.tableData[i + 1][prop];
         }
         if (prop in this.tableData[i + 2]) {
           refund = this.tableData[i + 2][prop];
@@ -287,15 +292,31 @@ export class BalanceReportComponent implements OnInit {
         if (price != null && price.price != null) {
           this.tableData[i + 3]['product' + this.products[k].product_id] = order - refund;
           let colSum = (order - refund) * +price.price;
-          this.tableData[i +4]['product' + this.products[k].product_id] = colSum;
+          this.tableData[i + 4]['product' + this.products[k].product_id] = colSum;
           sum += colSum;
         }
       }
-      this.total+=sum;
+      this.total += sum;
+      this.tableData[i + 4].total = sum;
       this.tableData[i + 4].client = new Client();
-      this.tableData[i + 4].client.phone = new DecimalPipe('en-US').transform(sum,'1.0-2') +  " ₪";
-      this.tableData[i + 4].cellSumStyle = { fontWeight: 'bold',  backgroundColor: '#43dbe2bd'};
+      this.tableData[i + 4].client.phone = new DecimalPipe('en-US').transform(sum, '1.0-2') + " ₪";
+      this.tableData[i + 4].cellSumStyle = { fontWeight: 'bold', backgroundColor: '#43dbe2bd' };
     }
+
+    for (let i = this.tableData.length - 2; i > 0; i = i - 6) {
+      if (this.tableData[i].total == 0) {
+        this.tableData.splice(i - 4, 6);
+      } else {
+        this.active_clients.push(this.tableData[i - 4].client);
+      }
+    }
+
+    this.displayTotal = this.total;
+    this.active_clients.sort((a, b) => {
+      if (a.name < b.name) return -1;
+      if (a.name > b.name) return 1;
+      return 0;
+    });
   }
 
   clearTable() {
@@ -306,5 +327,31 @@ export class BalanceReportComponent implements OnInit {
       }
     }
     this.gridApi.setRowData(this.tableData);
+  }
+
+  showFilterByClient() {
+    this.displayAddClientDialog = true;
+  }
+
+  filterByClient(client: Client) {
+    this.displayAddClientDialog = false;
+    this.filteredTableData = [];
+    for (let i = 0; i < this.tableData.length; i = i + 6) {
+      if (this.tableData[i].client.name == client.name) {
+        this.filteredTableData.push(this.tableData[i]);
+        this.filteredTableData.push(this.tableData[i + 1]);
+        this.filteredTableData.push(this.tableData[i + 2]);
+        this.filteredTableData.push(this.tableData[i + 3]);
+        this.filteredTableData.push(this.tableData[i + 4]);
+        this.displayTotal = this.tableData[i + 4].total;
+      }
+    }
+    this.gridApi.setRowData(this.filteredTableData);
+  }
+
+  showAll() {
+    this.gridApi.setRowData(this.tableData);
+    this.displayTotal = this.total;
+    this.displayAddClientDialog = false;
   }
 }

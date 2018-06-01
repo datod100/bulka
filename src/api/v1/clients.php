@@ -125,6 +125,8 @@ $app->put('/clients', function () use ($app) {
         email=?,
         phone=?,
         contact_person=?,
+        payment_phone=?,
+        payment_person=?,
         travel_duration=?,
         group_id=?,
         group_order=?,
@@ -135,13 +137,15 @@ $app->put('/clients', function () use ($app) {
 
     $stmt = $db->conn->stmt_init();
     $stmt->prepare($q);
-    $stmt->bind_param('sdsssssddsssd',
+    $stmt->bind_param('sdsssssssddsssd',
         $res->name,
         $res->hetpei,
         $res->address,
         $res->email,
         $res->phone,
         $res->contact_person,
+        $res->payment_phone,
+        $res->payment_person,
         $res->travel_duration,
         $res->group_id,
         $res->group_order,
@@ -172,6 +176,8 @@ $app->post('/clients', function () use ($app) {
         email=?,
         phone=?,
         contact_person=?,
+        payment_phone=?,
+        payment_person=?,
         travel_duration=?,
         group_id=?,
         group_order=?,
@@ -181,13 +187,15 @@ $app->post('/clients', function () use ($app) {
 
     $stmt = $db->conn->stmt_init();
     $stmt->prepare($q);
-    $stmt->bind_param('sdsssssddsss',
+    $stmt->bind_param('sdsssssssddsss',
         $res->name,
         $res->hetpei,
         $res->address,
         $res->email,
         $res->phone,
         $res->contact_person,
+        $res->payment_phone,
+        $res->payment_person,
         $res->travel_duration,
         $res->group_id,
         $res->group_order,

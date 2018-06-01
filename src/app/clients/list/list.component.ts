@@ -7,7 +7,7 @@ import { ClientService } from '../../_services/index';
 import { NgbModal, NgbActiveModal, ModalDismissReasons } from '@ng-bootstrap/ng-bootstrap';
 import { EditComponent } from '../../clients/edit/edit.component';
 import { ConfirmationDialogComponent } from '../../confirmation-dialog/confirmation-dialog.component';
-import {GridOptions} from "ag-grid/main";
+import {GridOptions, GridApi} from "ag-grid/main";
 import { ListGridComponent } from '../../clients/list-grid/list-grid.component';
 import { sprintf } from 'sprintf-js';
 
@@ -21,7 +21,10 @@ export class ListComponent implements OnInit {
   clients: Client[] = [];
   closeResult: string;
   gridOptions: GridOptions;
-  columnDefs: any[]  
+  columnDefs: any[];
+  private gridApi: GridApi;
+  tableStyle;
+  domLayout;
   private context;
   private frameworkComponents;
 
@@ -48,8 +51,10 @@ export class ListComponent implements OnInit {
                 return '<img src="../images/loading.gif">'
             }
         }},
-        {headerName: "שם הלקוח", field: "name", width:350},
-        {headerName: "אפשרויות", cellStyle:'center-block', width:160, suppressSizeToFit: true, cellRendererFramework: ListGridComponent}
+        {headerName: "שם הלקוח", field: "name", width:250},
+        {headerName: "איש קשר לתשלום", field: "payment_person", width:120},
+        {headerName: "טלפון לתשלום", field: "payment_phone", width:120},
+        {headerName: "אפשרויות", headerClass:'no-print', cellClass:'center-block no-print', width:160, suppressSizeToFit: true, cellRendererFramework: ListGridComponent}
     ];
   }
 
@@ -68,11 +73,29 @@ export class ListComponent implements OnInit {
        params.columnApi.setColumnWidth(params.columnApi.getAllColumns().find(item => item.colDef.headerName == "Options"), 160);
     }
 
-    params.api.sizeColumnsToFit();
+    this.gridApi.sizeColumnsToFit();
+    this.calcGrid();
 }
 
   onGridReady(params) {
-    params.api.sizeColumnsToFit();
+    this.gridApi = params.api;
+    this.gridApi.sizeColumnsToFit();
+    this.calcGrid();
+  }
+
+  calcGrid() {
+    let screenWidth = document.documentElement.clientWidth;
+    let screenHeight = document.documentElement.clientHeight;
+
+    let newWidth = 0;
+    for (let i = 0; i < this.columnDefs.length; i++) {
+      newWidth += this.columnDefs[i].width;
+    }
+    newWidth += 20;
+    let newHeight = screenHeight - 175;
+    this.tableStyle = { width:newWidth+'px', height: newHeight + 'px', maxWidth:  newWidth + 'px', boxSizing: 'border-box' };
+    
+    this.gridApi.doLayout();
   }
 
   delete(client:Client) {
@@ -99,6 +122,10 @@ export class ListComponent implements OnInit {
 
   ngOnInit() {
     this.loadAllClients();
+  }
+
+  print(){
+    window.print();
   }
 
 }

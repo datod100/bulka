@@ -60,6 +60,7 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
   cycles = [];
   headerTableStyle;
   tableStyle;
+  maxWidth;
   groups: Group[] = [];
   summaryItems: OrderSummaryItem[] = [];
   orderLines: Order[] = [];
@@ -173,6 +174,7 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
         headerName: "&#x2714;", width: 45, cellClass: "cell-center center", editable: false, checkboxSelection: true,
         headerCheckboxSelection: true,
         suppressSorting: true,
+        pinned: 'right',
         suppressMenu: true,
         cellStyle: function (params) {
           let style = { backgroundColor: "" };
@@ -192,6 +194,7 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
         headerName: "סטטוס", field: "status", cellClass: "center", width: 60, editable: true,
         headerClass: "header-cell",
         cellEditor: 'select',
+        pinned: 'right',
         suppressSorting: true,
         cellStyle: function (params) {
           let style = { backgroundColor: "" };
@@ -207,6 +210,7 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
       {
         headerName: "קבוצה", field: "group", width: 78,
         headerClass: "header-cell",
+        pinned: 'right',
         cellStyle: function (params) {
           if (params.value) {
             return { backgroundColor: params.value.color };
@@ -234,6 +238,7 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
       {
         headerName: 'ת"ק', field: "client.group_order", width: 40, cellClass: "center",
         headerClass: "header-cell",
+        pinned: 'right',
         cellStyle: function (params) {
           let style = { backgroundColor: "" };
           if (params.data.cellStyle) {
@@ -248,6 +253,7 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
       {
         headerName: "שם הלקוח", field: "client.name", width: 174, editable: false, rowDrag: false, suppressFilter: true, suppressSorting: true,
         headerClass: "header-cell",
+        pinned: 'right',
         cellStyle: function (params) {
           let style = { backgroundColor: "" };
           if (params.data.cellStyle) {
@@ -780,9 +786,9 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
     this.gridApi2.setRowData(this.tableData);
   }
 
-  calcGridWidth() {
-    let screenWidth = window.outerWidth;
-    let screenHeight = window.outerHeight;
+  calcGridWidth() {    
+    let screenWidth = document.documentElement.clientWidth;
+    let screenHeight = document.documentElement.clientHeight;
 
     let newWidth = 0;
     for (let i = 0; i < this.columnDefs.length; i++) {
@@ -799,8 +805,10 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
     }
     newWidth += 20;
     //this.tableStyle = { width: ((newWidth > screenWidth) ? screenWidth - 50 : newWidth) + 'px' };
-    let newHeight = screenHeight - 505;
-    this.tableStyle = { width: newWidth + 'px', height: newHeight + 'px',
+    let newHeight = screenHeight - 430;
+    //this.tableStyle = { width: newWidth + 'px', height: newHeight + 'px',
+    this.maxWidth = newWidth;
+    this.tableStyle = { width:'100%', height: newHeight + 'px', maxWidth:  newWidth + 'px',
     boxSizing: 'border-box' };
     
     this.gridApi2.doLayout();

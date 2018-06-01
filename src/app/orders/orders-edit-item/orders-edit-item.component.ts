@@ -26,7 +26,7 @@ export class OrdersEditItemComponent implements OnInit {
   }
   get item(): OrderItem { return this._item; }
 
-  public product_types: string[] = ['Rolls', 'Fabrics', 'Mural', 'Meter'];
+  public product_types: string[] = ['Rolls', 'Fabrics', 'Mural', 'Meter', 'Accessories'];
   selectedCollection: { name: string; id: number } = { name: null, id: -1 };
   public collections = [];
   public filteredCollections = [];

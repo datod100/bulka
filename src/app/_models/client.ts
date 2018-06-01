@@ -8,6 +8,8 @@ export class Client {
     email: string;
     phone: string;
     contact_person: string;
+    payment_phone: string;
+    payment_person: string;
     travel_duration: string;
     group_id: number;
     group_order : number;

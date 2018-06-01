@@ -1,0 +1,1 @@
+ALTER TABLE `clients` ADD `payment_phone` VARCHAR(20) NULL AFTER `contact_person`, ADD `payment_person` VARCHAR(50) NULL AFTER `payment_phone`;
