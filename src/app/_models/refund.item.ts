@@ -3,4 +3,5 @@ export class RefundItem {
     product_id: number;
     client_id: number;
     quantity :number;
+    price : number;
 }

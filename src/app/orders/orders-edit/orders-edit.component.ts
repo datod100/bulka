@@ -236,7 +236,7 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
         cellEditor: "agColorSelect"
       },
       {
-        headerName: 'ת"ק', field: "client.group_order", width: 40, cellClass: "center",
+        headerName: 'מ"ק', field: "client.group_order", width: 40, cellClass: "center",
         headerClass: "header-cell",
         pinned: 'right',
         cellStyle: function (params) {
@@ -917,6 +917,8 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
               item.order_id = this.order_id;
               item.product_id = this.products[k].product_id;
               item.quantity = quantity;
+              let client = this.tableData[i].client;
+              item.price = client.prices.find(p => p.product.product_id == this.products[k].product_id).price;
               orderProducts.push(item);
             }
           }

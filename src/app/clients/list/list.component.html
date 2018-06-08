@@ -2,18 +2,32 @@
   <h3 class="mb-3">לקוחות</h3>
   <div class="mb-2 no-print">
     <button class="btn btn-sm btn-primary mr-2" (click)="print()">
-      <i class="fa fa-print"></i> הדפס</button>
+      <i class="fa fa-print"></i> הדפס הכל</button>
+      
+      הפוך מסומנים ל:
+      <button class="btn btn-sm btn-success mr-2" (click)="activate(true)">
+        <i class="fa fa-user"></i> פעיל</button>
+      <button class="btn btn-sm btn-danger mr-2" (click)="activate(false)">
+        <i class="fa fa-user"></i> לא פעיל</button>
   </div>
+
   <ag-grid-angular style="height: 100%" class="ag-theme-fresh center-block" [rowData]="clients" [columnDefs]="columnDefs" [domLayout]="domLayout"
     [context]="context" (gridSizeChanged)="onGridSizeChanged($event)" [frameworkComponents]="frameworkComponents" [enableRtl]="true"
     [gridOptions]="gridOptions" (gridReady)="onGridReady($event)">
   </ag-grid-angular>
-
-  <app-action-menu [routerLink]="['/clients/edit']" class="no-print"></app-action-menu>
-  <br>
-  <br>
-  <br>
-  <br>
-  <br>
-  <br>
 </div>
+
+<app-action-menu [routerLink]="['/clients/edit']" class="no-print"></app-action-menu>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+
+<p-confirmDialog #cd>
+  <p-footer>
+    <button type="button" pButton icon="fa-check" label="כן" (click)="cd.accept()"></button>
+    <button type="button" pButton icon="fa-close" label="לא" (click)="cd.reject()"></button>
+  </p-footer>
+</p-confirmDialog>

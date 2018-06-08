@@ -44,6 +44,7 @@ $app->get('/order/products/:order_id', function ($order_id) use ($app) {
         $row["index_id"] = (int)$row["index_id"];
         $row["product_id"] = (int)$row["product_id"];
         $row["quantity"] = (int)$row["quantity"];
+        $row["price"] = (float)$row["price"];
         $response[] = $row;
     }
     echoResponse(200, $response);
@@ -310,10 +311,10 @@ $app->put('/order/products/save', function () use ($app) {
     $stmt->execute();
 
     for($i = 0; $i < count($items); ++$i) {    
-        $q = "INSERT INTO `order_products` (`index_id`, `order_id`, `product_id`, `quantity`) VALUES (?,?,?,?)";
+        $q = "INSERT INTO `order_products` (`index_id`, `order_id`, `product_id`, `quantity`, `price`) VALUES (?,?,?,?,?)";
         $stmt = $db->conn->stmt_init();
         $stmt->prepare($q);
-        $stmt->bind_param('dddd',$items[$i]->index_id, $items[$i]->order_id, $items[$i]->product_id, $items[$i]->quantity);
+        $stmt->bind_param('ddddd',$items[$i]->index_id, $items[$i]->order_id, $items[$i]->product_id, $items[$i]->quantity, $items[$i]->price);
         $stmt->execute();
         $index_id[] = $stmt->insert_id;
     }

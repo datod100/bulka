@@ -13,4 +13,9 @@ export class ReportsService {
       return this.http.get<any[]>(environment.apiUrl + '/reports/refunds/'+start+'/'+end);
   }
 
+  getSalesReport(start_date, end_date, client_id:number) {
+    let start = new DatePipe('en-US').transform(start_date, 'yyyy-MM-dd');
+    let end = new DatePipe('en-US').transform(end_date, 'yyyy-MM-dd');
+      return this.http.get<any[]>(environment.apiUrl + '/reports/sales/'+start+'/'+end+'/'+client_id);
+  }
 }

@@ -71,7 +71,7 @@ function createInvoice(&$pdf, &$db, $order_id, $index, $index_id){
     $x_offset = 150;
     $group_names = array("א", "ב", "ג", "ד", "ה", "ו", "ז", "ח","ט","י",'י"א','י"ב');
    
-    $q = "SELECT DISTINCT od.order_date, c.name client_name, p.name product_name, cp.price, o.invoice_number, o.group_id,o.supply_time, c.group_order, op.*,
+    $q = "SELECT DISTINCT od.order_date, c.name client_name,c.address,c.phone, p.name product_name, cp.price, o.invoice_number, o.group_id,o.supply_time, c.group_order, op.*,
     c.default_time1, c.default_time2, c.default_time3
     FROM `order_products` op INNER JOIN products p ON op.product_id=p.product_id INNER JOIN orders o ON (op.order_id = o.order_id AND op.index_id = o.index_id)
     INNER JOIN clients c ON c.client_id=o.client_id INNER JOIN client_product_price cp ON (c.client_id=cp.client_id AND p.product_id = cp.product_id)
@@ -151,9 +151,10 @@ function createInvoice(&$pdf, &$db, $order_id, $index, $index_id){
 
     $pdf->SetFont('freeserif', '', 10);
     $pdf->SetXY(8, 59);
-    $pdf->Write(5, $products[0]['group_name']. " (" . $products[0]['group_order'].")");
+    $temp = $products[0]['address']." | ".$products[0]['phone']." | ".$products[0]['group_name']. " (" . $products[0]['group_order'].")";
+    $pdf->Write(5, $temp);
     $pdf->SetX(8 + $x_offset);
-    $pdf->Write(5, $products[0]['group_name']. " (" . $products[0]['group_order'].")");
+    $pdf->Write(5, $temp);
 
     $pdf->SetFont('freeserif', '', 13);
     $total = 0;

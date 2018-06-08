@@ -112,10 +112,10 @@ $app->put('/refunds/save/:refund_id', function ($refund_id) use ($app) {
     $index_id=[];
 
     for($i = 0; $i < count($items); ++$i) {    
-        $q = "INSERT INTO `refund_products` (`refund_id`, `client_id`, `product_id`, `quantity`) VALUES (?,?,?,?)";
+        $q = "INSERT INTO `refund_products` (`refund_id`, `client_id`, `product_id`, `quantity`, `price`) VALUES (?,?,?,?,?)";
         $stmt = $db->conn->stmt_init();
         $stmt->prepare($q);
-        $stmt->bind_param('dddd',$items[$i]->refund_id, $items[$i]->client_id, $items[$i]->product_id, $items[$i]->quantity);
+        $stmt->bind_param('ddddd',$items[$i]->refund_id, $items[$i]->client_id, $items[$i]->product_id, $items[$i]->quantity, $items[$i]->price);
         $stmt->execute();
         $index_id[] = $stmt->insert_id;
     }

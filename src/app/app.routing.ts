@@ -14,6 +14,7 @@ import { EditComponent } from './clients/edit/edit.component';
 import { RefundComponent } from './refund/refund/refund.component';
 import { BalanceReportComponent } from './reports/balance/balance.component';
 import { BrowserComponent } from './browser/browser.component';
+import { SalesComponent } from './reports/sales/sales.component';
 
 const appRoutes: Routes = [{
         path: 'browser',
@@ -138,6 +139,28 @@ const appRoutes: Routes = [{
             {
                 path: '',
                 component: BalanceReportComponent
+            }
+        ]
+    },
+    {
+        path: 'reports/sales',
+        canActivate: [AuthGuard],
+        component: HomeLayoutComponent,
+        children: [
+            {
+                path: '',
+                component: SalesComponent
+            }
+        ]
+    },
+    {
+        path: 'reports/sales/:id',
+        canActivate: [AuthGuard],
+        component: HomeLayoutComponent,
+        children: [
+            {
+                path: '',
+                component: SalesComponent
             }
         ]
     },

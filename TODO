@@ -1,1 +1,24 @@
-ALTER TABLE `clients` ADD `payment_phone` VARCHAR(20) NULL AFTER `contact_person`, ADD `payment_person` VARCHAR(50) NULL AFTER `payment_phone`;
+ALTER TABLE `order_products` ADD `price` FLOAT NOT NULL DEFAULT '0' AFTER `quantity`;
+ALTER TABLE `refund_products` ADD `price` FLOAT NOT NULL DEFAULT '0' AFTER `quantity`;
+ALTER TABLE `clients` ADD `active` BOOLEAN NOT NULL DEFAULT TRUE AFTER `name`;
+
+UPDATE
+    order_products dest, (SELECT op.index_id, op.order_id, op.product_id, cp.price FROM order_products op INNER JOIN orders o ON (op.index_id=o.index_id AND op.order_id=o.order_id)
+	INNER JOIN client_product_price cp ON (op.product_id=cp.product_id AND o.client_id=cp.client_id)) src
+SET
+    dest.price = src.price
+where
+	dest.index_id=src.index_id and
+	dest.order_id=src.order_id and
+	dest.product_id=src.product_id
+	
+    
+UPDATE
+    refund_products dest, (SELECT op.client_id, op.refund_id, op.product_id, cp.price FROM refund_products op 
+	INNER JOIN client_product_price cp ON (op.product_id=cp.product_id AND op.client_id=cp.client_id)) src
+SET
+    dest.price = src.price
+where
+	dest.client_id=src.client_id and
+	dest.refund_id=src.refund_id and
+	dest.product_id=src.product_id

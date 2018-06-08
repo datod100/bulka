@@ -304,6 +304,8 @@ export class RefundComponent implements OnInit, OnDestroy {
           itm.product_id = this.products[k].product_id;
           itm.quantity = +quantity;
           itm.refund_id = this.refund_id;
+          let client = this.tableData[i].client;
+          itm.price = client.prices.find(p => p.product.product_id == this.products[k].product_id).price;
           items.push(itm);
         }
       }

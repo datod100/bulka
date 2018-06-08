@@ -51,6 +51,7 @@ import { NgxSpinnerModule } from 'ngx-spinner';
 import { MessageService } from 'primeng/components/common/messageservice';
 import { DeviceDetectorModule } from 'ngx-device-detector';
 import { BrowserComponent } from './browser/browser.component';
+import { SalesComponent } from './reports/sales/sales.component';
 
 @NgModule({
     imports: [
@@ -97,7 +98,8 @@ import { BrowserComponent } from './browser/browser.component';
         AgColorSelectComponent,
         RefundComponent,
         BalanceReportComponent,
-        BrowserComponent
+        BrowserComponent,
+        SalesComponent
     ],
     providers: [
         AuthGuard,
