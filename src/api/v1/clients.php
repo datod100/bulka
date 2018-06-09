@@ -108,7 +108,6 @@ $app->put('/clients/prices/save/:client_id', function ($client_id) use ($app) {
     echoResponse(200, 'OK');
 });
 
-
 //update client
 $app->put('/clients', function () use ($app) {
     $res = json_decode($app->request->getBody());
@@ -210,4 +209,21 @@ $app->post('/clients', function () use ($app) {
     }
     $response = $stmt->insert_id;
     echoResponse(200, $response);
+});
+
+
+//update client
+$app->put('/clients/update_state', function () use ($app) {
+    $res = json_decode($app->request->getBody());
+    $response = array();
+    $db = new DbHandler();
+    if (!isAuthenticated()){
+        echoResponse(403, "Not authenticated");
+        return;
+    }
+    $clients = "client_id = ".implode(" OR client_id = ", $res->clients);
+    $q = "UPDATE clients SET active=".($res->state?"1":"0")." WHERE ".$clients;
+    //echoResponse(200, var_dump($q)); return;
+    $db->execute($q);
+    echoResponse(200, 'OK');
 });

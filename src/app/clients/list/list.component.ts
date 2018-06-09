@@ -28,8 +28,9 @@ export class ListComponent implements OnInit {
   private gridApi: GridApi;
   tableStyle;
   domLayout;
-  private context;
-  private frameworkComponents;
+  context;
+  frameworkComponents;
+  rowSelection;
 
   constructor(
     private clientService: ClientService,
@@ -42,6 +43,7 @@ export class ListComponent implements OnInit {
     this.gridOptions.domLayout = 'autoHeight'
 
 
+    this.rowSelection = "multiple";
     this.context = { componentParent: this };
     this.frameworkComponents = {
       squareRenderer: ListGridComponent,
@@ -68,7 +70,7 @@ export class ListComponent implements OnInit {
         },
       },
       {
-        headerName: "#", width: 30, suppressSizeToFit: true, cellStyle: 'center-block',
+        headerName: "#", width: 30, suppressSizeToFit: true, cellStyle: 'center-block',suppressMenu: true,suppressSorting: true,
         // it is important to have node.id here, so that when the id changes (which happens
         // when the row is loaded) then the cell is refreshed.
         valueGetter: 'node.id',
@@ -80,16 +82,34 @@ export class ListComponent implements OnInit {
           }
         }
       },
-      { headerName: "שם הלקוח", headerClass: "header-cell", field: "name", width: 220 },
-      { headerName: "קבוצה", headerClass: "header-cell", field: "group.name", width: 78 },
-      { headerName: 'מ"ק', headerClass: "header-cell", field: "group_order", width: 40, cellClass: "center" },
-      { headerName: "חפ", headerClass: "header-cell", field: "hetpei", width: 100, cellClass: "center" },
-      { headerName: "איש קשר", headerClass: "header-cell", field: "contact_person", width: 110 },
-      { headerName: "טלפון", headerClass: "header-cell", field: "phone", width: 120, cellClass: "center" },
-      { headerName: "איש קשר לתשלום", headerClass: "header-cell", field: "payment_person", width: 120 },
-      { headerName: "טלפון לתשלום", headerClass: "header-cell", field: "payment_phone", width: 120, cellClass: "center" },
-      { headerName: "כתובת", headerClass: "header-cell", field: "address", width: 260 },
-      { headerName: "אפשרויות", headerClass: 'header-cell no-print', cellClass: 'center-block no-print', width: 140, suppressSizeToFit: true, cellRendererFramework: ListGridComponent }
+      { headerName: "פעיל", field: "active", width: 70, cellClass: "center",
+        cellRenderer: function (params) {
+          if (params.value=="1") {
+            return "כן";
+          } else {
+            return "לא";
+          }
+        },
+        cellStyle: function (params) {
+          let style = { backgroundColor: "" };
+          if (params.value=="1") {
+            style.backgroundColor = "#8fea84";
+          } else {
+            style.backgroundColor = "#dc8a92";
+          }
+          return style;
+        }
+      },
+      { headerName: "שם הלקוח", field: "name", width: 220 },
+      { headerName: "קבוצה", field: "group.name", width: 78 },
+      { headerName: 'מ"ק', field: "group_order", width: 60, cellClass: "center" },
+      { headerName: "חפ", field: "hetpei",suppressSorting: true,suppressMenu: true,  width: 100, cellClass: "center" },
+      { headerName: "איש קשר", headerClass: "header-cell",suppressSorting: true,suppressMenu: true, field: "contact_person", width: 110 },
+      { headerName: "טלפון", headerClass: "header-cell",suppressSorting: true,suppressMenu: true, field: "phone", width: 120, cellClass: "center" },
+      { headerName: "איש קשר לתשלום", headerClass: "header-cell",suppressSorting: true,suppressMenu: true, field: "payment_person", width: 120 },
+      { headerName: "טלפון לתשלום", headerClass: "header-cell",suppressSorting: true,suppressMenu: true, field: "payment_phone", width: 120, cellClass: "center" },
+      { headerName: "כתובת", headerClass: "header-cell",suppressSorting: true,suppressMenu: true, field: "address", width: 260 },
+      { headerName: "אפשרויות", headerClass: 'header-cell no-print', cellClass: 'center-block no-print',suppressSorting: true,suppressMenu: true, width: 140, suppressSizeToFit: true, cellRendererFramework: ListGridComponent }
     ];
   }
 
@@ -166,17 +186,13 @@ export class ListComponent implements OnInit {
     );
   }
 
-  activate(state: Boolean) {
-    let selectedClients = [];
-    for (let i = 0; i < this.clients.length; i++) {
-      let row: any = this.gridApi.getModel().getRow(i);
-      if (row.selected) {
-        if (this.clients[i].active=!state){
-          selectedClients.push(this.clients[i].client_id);
-        }
-      }
+  activate(state: boolean) {
+    let selectedClients = this.gridApi.getSelectedRows().filter(x=>x.active!=state).map(x=>x.client_id);
+   
+    if (selectedClients.length==0){
+      this.alertService.warning("לא נמצאו שורות לעדכון");
+      return;
     }
-    
 
     if (!state) {
       this.confirmationService.confirm({
@@ -184,12 +200,30 @@ export class ListComponent implements OnInit {
         header: 'אישור',
         icon: 'fa fa-question-circle',
         accept: () => {
-          let counter = 0;
-          
-
+          this.clientService.updateState(state, selectedClients).subscribe(
+            data=>{
+              this.alertService.success("פעולה בוצעה");
+              this.loadAllClients();
+            },
+            err=>{
+              this.alertService.error("שגיאה");
+            }
+          );
         }
       });
+    }else{
+      this.clientService.updateState(state, selectedClients).subscribe(
+        data=>{
+          this.alertService.success("פעולה בוצעה");
+          this.loadAllClients();
+        },
+        err=>{
+          this.alertService.error("שגיאה");
+        }
+      );
     }
+
+
   }
 
   ngOnInit() {

@@ -13,6 +13,7 @@
 
   <ag-grid-angular style="height: 100%" class="ag-theme-fresh center-block" [rowData]="clients" [columnDefs]="columnDefs" [domLayout]="domLayout"
     [context]="context" (gridSizeChanged)="onGridSizeChanged($event)" [frameworkComponents]="frameworkComponents" [enableRtl]="true"
+    [enableSorting]="true" [enableFilter]="true" [rowSelection]="rowSelection"
     [gridOptions]="gridOptions" (gridReady)="onGridReady($event)">
   </ag-grid-angular>
 </div>

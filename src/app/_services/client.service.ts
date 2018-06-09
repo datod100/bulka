@@ -35,4 +35,8 @@ export class ClientService {
     savePrices(client_id: number, prices: Price[]) {
         return this.http.put(environment.apiUrl + '/clients/prices/save/' + client_id, prices);
     }
+    
+    updateState(state:boolean, client_ids:number[]) {
+        return this.http.put(environment.apiUrl + '/clients/update_state', {state:state, clients:client_ids});
+    }
 }
