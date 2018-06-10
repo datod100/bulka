@@ -171,7 +171,19 @@ export class BalanceReportComponent implements OnInit {
   }
 
   private loadData() {
-    this.clearTable();
+    this.tableData=[];
+
+    for (let i = 0; i < this.clients.length; i++) {
+      this.tableData.push({ type: 'לקוח', client: this.clients[i], cellStyle: { backgroundColor: 'white' } });
+      this.tableData.push({ type: 'נשלח' });
+      this.tableData.push({ type: 'זיכוי' });
+      this.tableData.push({ type: 'סה"כ מוצרים', cellStyle: { fontWeight: 'bold', direction: 'ltr', paddingLeft: '2px !important', paddingRight: '2px !important'} });
+      this.tableData.push({ type: 'לתשלום', cellStyle: { fontWeight: 'bold', direction: 'ltr', paddingLeft: '2px !important', paddingRight: '2px !important'}, formatter: " ₪" });
+      this.tableData.push({ delimiter: true });
+    }
+    this.gridApi.setRowData(this.tableData);
+
+    //this.clearTable();
     this.loading = true;
     Observable.forkJoin(
       this.reportsService.getBalanceReport(this.start_date, this.end_date)
@@ -214,8 +226,9 @@ export class BalanceReportComponent implements OnInit {
   }
 
   private buildTable() {
+    this.tableData=[];
     for (let k = 0; k < this.products.length; k++) {
-      let colWidth = this.products[k].width;
+      let colWidth = this.products[k].width+6;
 
       this.columnDefs.push({
         headerName: this.products[k].name,
@@ -237,17 +250,7 @@ export class BalanceReportComponent implements OnInit {
       });
     }
 
-    for (let i = 0; i < this.clients.length; i++) {
-      this.tableData.push({ type: 'לקוח', client: this.clients[i], cellStyle: { backgroundColor: 'white' } });
-      this.tableData.push({ type: 'נשלח' });
-      this.tableData.push({ type: 'זיכוי' });
-      this.tableData.push({ type: 'סה"כ מוצרים', cellStyle: { fontWeight: 'bold', direction: 'ltr', paddingLeft: '2px !important', paddingRight: '2px !important'} });
-      this.tableData.push({ type: 'לתשלום', cellStyle: { fontWeight: 'bold', direction: 'ltr', paddingLeft: '2px !important', paddingRight: '2px !important'}, formatter: " ₪" });
-      this.tableData.push({ delimiter: true });
-    }
-
     this.gridApi.setColumnDefs(this.columnDefs);
-    this.gridApi.setRowData(this.tableData);
     this.calcGrid();
   }
 

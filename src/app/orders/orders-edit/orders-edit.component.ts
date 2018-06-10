@@ -70,6 +70,7 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
   title;
   rowSelection;
   public clients: Client[] = [];
+  activeClients: Client[] = [];
   order_id: number;
   orderDate: Date;
   orderDisplayDate: Date;
@@ -669,6 +670,7 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
         this.products = data[1];
         this.groups = data[2];
         this.clients = data[3];
+        this.activeClients = this.clients.filter(x=>x.active);
         this.statuses = data[4];
 
         this.columnDefs2.find(x => x.field == "status").cellEditorParams = { values: this.statuses };
@@ -774,13 +776,13 @@ export class OrdersEditComponent implements OnInit, OnDestroy {
 
   fillNewOrder() {
     this.tableData = [];
-    for (let i = 0; i < this.clients.length; i++) {
-      this.tableData.push({ invoice_number: 0, select: false, status: this.statuses[0], group: this.groups.find(e => this.clients[i].group_id == e.group_id), client: this.clients[i], supply_time: this.clients[i].default_time1 });
-      if (this.clients[i].default_time2) {
-        this.tableData.push({ invoice_number: 0, select: false, status: this.statuses[0], group: this.groups.find(e => this.clients[i].group_id == e.group_id), client: this.clients[i], supply_time: this.clients[i].default_time2 });
+    for (let i = 0; i < this.activeClients.length; i++) {
+      this.tableData.push({ invoice_number: 0, select: false, status: this.statuses[0], group: this.groups.find(e => this.activeClients[i].group_id == e.group_id), client: this.activeClients[i], supply_time: this.activeClients[i].default_time1 });
+      if (this.activeClients[i].default_time2) {
+        this.tableData.push({ invoice_number: 0, select: false, status: this.statuses[0], group: this.groups.find(e => this.activeClients[i].group_id == e.group_id), client: this.activeClients[i], supply_time: this.activeClients[i].default_time2 });
       }
-      if (this.clients[i].default_time3) {
-        this.tableData.push({ invoice_number: 0, select: false, status: this.statuses[0], group: this.groups.find(e => this.clients[i].group_id == e.group_id), client: this.clients[i], supply_time: this.clients[i].default_time3 });
+      if (this.activeClients[i].default_time3) {
+        this.tableData.push({ invoice_number: 0, select: false, status: this.statuses[0], group: this.groups.find(e => this.activeClients[i].group_id == e.group_id), client: this.activeClients[i], supply_time: this.activeClients[i].default_time3 });
       }
     }
     this.gridApi2.setRowData(this.tableData);

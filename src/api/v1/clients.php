@@ -19,6 +19,7 @@ $app->get('/clients(/:client_id)', function ($client_id=null) use ($app) {
         $row['hetpei'] = (int)$row['hetpei'];
         $row['group_id'] = (int)$row['group_id'];
         $row['group_order'] = (int)$row['group_order'];
+        $row['active'] = ($row['active']=="1");
         $row['travel_duration'] = substr($row['travel_duration'], 0, -3);
         $row['default_time1'] = substr($row['default_time1'], 0, -3);
         $row['default_time2'] = substr($row['default_time2'], 0, -3);

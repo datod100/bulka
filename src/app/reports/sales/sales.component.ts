@@ -1,15 +1,12 @@
-import { Component, OnInit, OnDestroy, NgModule } from '@angular/core';
-import { Order, Client, OrderItem, Group, OrderSummaryItem, RefundItem, Price } from '../../_models/index';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Order, Client, OrderItem, Group, RefundItem, Price } from '../../_models/index';
 import { ClientService, AlertService, ProductService, ReportsService } from '../../_services/index';
 import { ActivatedRoute, Router } from '@angular/router';
-import { error } from 'selenium-webdriver';
 import { Observable } from 'rxjs/Observable';
 import { NgbModal, ModalDismissReasons } from '@ng-bootstrap/ng-bootstrap';
 import { GridApi } from 'ag-grid/dist/lib/gridApi';
-import { GridOptions, SelectCellEditor } from "ag-grid/main";
-import { AgColorSelectComponent } from '../../_helpers/ag-color-select/ag-color-select.component';
-import { isArray } from 'util';
-import { DatePipe, DecimalPipe } from '@angular/common';
+import { GridOptions } from "ag-grid/main";
+import { DecimalPipe } from '@angular/common';
 import * as moment from 'moment';
 
 function precisionRound(number, precision) {
@@ -38,7 +35,6 @@ export class SalesComponent implements OnInit, OnDestroy {
   statuses: string[] = [];
   rowSelection;
   public clients: Client[] = [];
-  public active_clients: Client[] = [];
   refund_id;
   refund = { refund_id: 0, refund_date: null };
   refundLines: RefundItem[];
@@ -53,9 +49,9 @@ export class SalesComponent implements OnInit, OnDestroy {
   displayAddClientDialog = false;
   dates;
   client_id:number;
-  client:Client = new Client();
+  client: Client = new Client();
   private sub: any;
-  
+
 
 
   public set StartDate(newDate: Date) {
@@ -112,7 +108,19 @@ export class SalesComponent implements OnInit, OnDestroy {
       {
         headerName: "תאריך", field: "date", width: 100, editable: false, cellStyle: (params) => {
           if (!params.data.delimiter) {
-            return Object.assign({ backgroundColor: '#f6f6f6' }, params.data.cellStyle);
+            return Object.assign(
+              { backgroundColor: '#f6f6f6' },
+              (params.value && params.data.type == 'נשלח') ? { height: "200%", paddingTop: "10px", zIndex: "100" } : {},
+              (params.value && params.data.type != 'נשלח') ? { backgroundColor: '#43dbe2bd' } : {},
+              params.data.cellStyle
+            );
+          }
+        },
+        valueFormatter: (params) => {
+          if (params.data.type == 'נשלח'){
+            return (params.value) ? moment(params.value).format('DD/MM/YYYY') : null
+          }else{
+            return params.value;
           }
         }
       },
@@ -134,7 +142,9 @@ export class SalesComponent implements OnInit, OnDestroy {
     this.loading = true;
 
     this.sub = this.route.params.subscribe(params => {
-      this.client_id = +params['id'];
+      if (params['id']) {
+        this.client_id = +params['id'];
+      }
     });
   }
 
@@ -148,7 +158,11 @@ export class SalesComponent implements OnInit, OnDestroy {
       data => {
         this.products = data[0];
         this.clients = data[1];
-        this.client = this.clients.find(x=>x.client_id == this.client_id);
+        if (this.client_id){
+          this.client = this.clients.find(x => x.client_id == this.client_id);
+        }else{
+          this.client = this.clients[0];
+        }
 
         let clients_count = 0;
         for (let i = 0; i < this.clients.length; i++) {
@@ -179,15 +193,15 @@ export class SalesComponent implements OnInit, OnDestroy {
       this.rawOrders.map(item => item.order_date).concat(this.rawRefunds.map(item => item.refund_date))
     );
 
-    let temp =[];
+    let temp = [];
     var myArr = Array.from(this.dates)
-    for (let item of myArr){
-      var row = {date:item, clients:[],orders:[], refunds:[]};
-      row.orders = Array.from(new Set(this.rawOrders.filter(x=>x.order_date==item).map(item => [item.product_id, item.total_quantity])));
-      row.refunds = Array.from(new Set(this.rawRefunds.filter(x=>x.refund_date==item).map(item => [item.product_id, item.total_quantity])));
+    for (let item of myArr) {
+      var row = { date: item, clients: [], orders: [], refunds: [] };
+      row.orders = Array.from(new Set(this.rawOrders.filter(x => x.order_date == item).map(item => [{ product_id: item.product_id, quantity: item.total_quantity, sum: item.total_sum }])));
+      row.refunds = Array.from(new Set(this.rawRefunds.filter(x => x.refund_date == item).map(item => [{ product_id: item.product_id, quantity: item.total_quantity, sum: item.total_sum }])));
       temp.push(row);
     }
-    
+
     temp.sort((a, b) => {
       if (a.date < b.date) return -1;
       if (a.date > b.date) return 1;
@@ -197,7 +211,7 @@ export class SalesComponent implements OnInit, OnDestroy {
   }
 
   private loadData() {
-    this.clearTable();
+    this.tableData = [];
     this.loading = true;
     Observable.forkJoin(
       this.reportsService.getSalesReport(this.start_date, this.end_date, this.client_id)
@@ -207,19 +221,46 @@ export class SalesComponent implements OnInit, OnDestroy {
         this.rawRefunds = data[0][1];
 
         let dates = this.getDates();
-        
+        let sums = [];
         for (let i = 0; i < dates.length; i++) {
-            let orders = {date: dates[i].date, type:'נשלח'};            
-            for (let order of dates[i].orders) {
-              orders['product' + order[0]] = order[1];
-            }
-            this.tableData.push(orders);
-            let refunds = {type:'זיכוי'};            
-            for (let refund of dates[i].refunds) {
-              refunds['product' + refund[0]] = refund[1];
-            }
-            this.tableData.push(refunds);
+          let orders = { date: dates[i].date, type: 'נשלח' };
+          for (let order of dates[i].orders) {
+            orders['product' + order[0].product_id] = order[0].quantity;
+            if (!('product' + order[0].product_id in sums)) sums['product' + order[0].product_id] = { quantity: 0, sum: 0 };
+            sums['product' + order[0].product_id].quantity += order[0].quantity;
+            sums['product' + order[0].product_id].sum += order[0].sum;
+          }
+          this.tableData.push(orders);
+          let refunds = { type: 'זיכוי' };
+          for (let refund of dates[i].refunds) {
+            refunds['product' + refund[0].product_id] = refund[0].quantity;
+            if (!('product' + refund[0].product_id in sums)) sums['product' + refund[0].product_id] = { quantity: 0, sum: 0 };
+            sums['product' + refund[0].product_id].quantity -= refund[0].quantity;
+            sums['product' + refund[0].product_id].sum -= refund[0].sum;
+          }
+          this.tableData.push(refunds);
+          this.tableData.push({ delimiter: true });
         }
+
+        let totalQuantity = { type: 'סה"כ מוצרים', cellStyle: { fontWeight: 'bold', direction: 'ltr', paddingLeft: '2px !important', paddingRight: '2px !important' } };
+        let totalSum = { type: 'לתשלום', cellStyle: { fontWeight: 'bold', direction: 'ltr', paddingLeft: '2px !important', paddingRight: '2px !important' }, formatter: " ₪" }
+
+        let grandTotal = 0;
+        for (var product in sums) {
+          if (sums.hasOwnProperty(product)) {
+            totalQuantity[product] = sums[product].quantity;
+            totalSum[product] = sums[product].sum;
+            grandTotal += sums[product].sum;
+          }
+        }
+        this.displayTotal = grandTotal;
+        totalSum["date"] = new DecimalPipe('en-US').transform(grandTotal, '1.0-2') + totalSum.formatter;
+        this.tableData.push(totalQuantity);
+        this.tableData.push(totalSum);
+        this.tableData.push({ delimiter: true });
+
+        //this.calcTable();
+
         this.gridApi.setRowData(this.tableData);
         this.alertService.success('טבלה עודכנה');
         this.loading = false;
@@ -233,7 +274,7 @@ export class SalesComponent implements OnInit, OnDestroy {
 
   private buildTable() {
     for (let k = 0; k < this.products.length; k++) {
-      let colWidth = this.products[k].width;
+      let colWidth = this.products[k].width+6;
 
       this.columnDefs.push({
         headerName: this.products[k].name,
@@ -246,7 +287,7 @@ export class SalesComponent implements OnInit, OnDestroy {
         valueFormatter: (params) => {
           if (params.value) {
             if (params.data.formatter) {
-              return precisionRound(params.value, 2) + params.data.formatter;
+              return new DecimalPipe('en-US').transform(params.value, '1.0-2') + params.data.formatter;
             }
           }
           return params.value;
@@ -281,70 +322,14 @@ export class SalesComponent implements OnInit, OnDestroy {
     }
   }
 
-
-  calcTable() {
-    this.total = 0;
-    for (let i = 0; i < this.tableData.length; i = i + 6) {
-      let sum = 0;
-      for (let k = 0; k < this.products.length; k++) {
-        let prop = 'product' + this.products[k].product_id;
-        let order = 0;
-        let refund = 0;
-        if (prop in this.tableData[i + 1]) {
-          order = this.tableData[i + 1][prop];
-        }
-        if (prop in this.tableData[i + 2]) {
-          refund = this.tableData[i + 2][prop];
-        }
-
-        let price = this.tableData[i].client.prices.find(p => p.product.product_id == this.products[k].product_id);
-        if (price != null && price.price != null) {
-          this.tableData[i + 3]['product' + this.products[k].product_id] = order - refund;
-          let colSum = (order - refund) * +price.price;
-          this.tableData[i + 4]['product' + this.products[k].product_id] = colSum;
-          sum += colSum;
-        }
-      }
-      this.total += sum;
-      this.tableData[i + 4].total = sum;
-      this.tableData[i + 4].client = new Client();
-      this.tableData[i + 4].client.phone = new DecimalPipe('en-US').transform(sum, '1.0-2') + " ₪";
-      this.tableData[i + 4].cellSumStyle = { fontWeight: 'bold', backgroundColor: '#43dbe2bd' };
-    }
-
-    for (let i = this.tableData.length - 2; i > 0; i = i - 6) {
-      if (this.tableData[i].total == 0) {
-        this.tableData.splice(i - 4, 6);
-      } else {
-        this.active_clients.push(this.tableData[i - 4].client);
-      }
-    }
-
-    this.displayTotal = this.total;
-    this.active_clients.sort((a, b) => {
-      if (a.name < b.name) return -1;
-      if (a.name > b.name) return 1;
-      return 0;
-    });
-  }
-
-  clearTable() {
-    this.gridApi.stopEditing(false);
-    for (let i = 0; i < this.tableData.length; i++) {
-      for (let k = 0; k < this.products.length; k++) {
-        this.tableData[i]["product" + this.products[k].product_id] = "";
-      }
-    }
-    this.gridApi.setRowData(this.tableData);
-  }
-
   showFilterByClient() {
     this.displayAddClientDialog = true;
   }
 
   filterByClient(client: Client) {
     this.displayAddClientDialog = false;
-    window.location.href = "/reports/sales/"+client.client_id;
+    this.client_id = client.client_id;
+    this.loadData();
   }
 
   showAll() {

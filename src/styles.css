@@ -115,6 +115,11 @@ app-list-grid {
 
 .ag-body {
   cursor: pointer;
+  min-height: 30px;
+}
+
+.ag-overlay-wrapper{
+  padding-top: 25px;
 }
 
 .ag-rtl .ag-header-select-all {
